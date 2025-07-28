@@ -44,7 +44,7 @@ def build_mat(mf6):
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
 init = {
     'sim_name' : "flow",
-    'exe_name' : "C:\\Users\\luiggi\\Documents\\GitSites\\xmf6\\mf6\\windows\\mf6",
+    'exe_name' : "C:\\Users\\luiggi\\Documents\\GitSites\\mf6_tutorial\\mf6\\windows\\mf6",
 #    'exe_name' : "../../mf6/macosarm/mf6",
     'sim_ws' : "sandbox4"
 }
