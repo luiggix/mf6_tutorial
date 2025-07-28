@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.29">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>5&nbsp; sim_ws = sandbox4 – Tutorial: Modflow 6 + Flopy</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./05_MF6_GWF_wells.html" rel="next">
+<link href="./03_MF6_GWF_v1.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-0815c480559380816a4d1ea211a47e91.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-485d01fc63b59abcd3ee1bf1e8e2748d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./04_MF6_GWF_v2.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">04_MF6_GWF_v2.html</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Tutorial: Modflow 6 + Flopy</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introducción</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./00_MF6_Intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">MODFLOW 6: introducción.</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_MF6_GWF_init.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">MODFLOW 6: inicializando una simulación.</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_MF6_GWF_paq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">MODFLOW 6: modelo GWF.</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_MF6_GWF_v1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">MODFLOW 6: simulación de flujo v 1.0</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_MF6_GWF_v2.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">04_MF6_GWF_v2.html</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_MF6_GWF_wells.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">05_MF6_GWF_wells.html</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">sim_ws = sandbox4</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div id="81c5b154-e35f-43ec-a6e0-650754042a28" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> flopy</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> xmf6</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="f0625030-9314-421d-8e1b-921d76d7dcc7" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>init <span class="op">=</span> {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'sim_name'</span> : <span class="st">"flow"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'exe_name'</span> : <span class="st">"C:</span><span class="ch">\\</span><span class="st">Users</span><span class="ch">\\</span><span class="st">luiggi</span><span class="ch">\\</span><span class="st">Documents</span><span class="ch">\\</span><span class="st">GitSites</span><span class="ch">\\</span><span class="st">xmf6</span><span class="ch">\\</span><span class="st">mf6</span><span class="ch">\\</span><span class="st">windows</span><span class="ch">\\</span><span class="st">mf6"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'sim_ws'</span> : <span class="st">"sandbox4"</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>time <span class="op">=</span> {</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">'units'</span>: <span class="st">"DAYS"</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">'nper'</span> : <span class="dv">1</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">'perioddata'</span>: [(<span class="fl">1.0</span>, <span class="dv">1</span>, <span class="fl">1.0</span>)]</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>ims <span class="op">=</span> {}</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>gwf <span class="op">=</span> { </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">'modelname'</span>: init[<span class="st">"sim_name"</span>],</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">'model_nam_file'</span>: <span class="ss">f"</span><span class="sc">{</span>init[<span class="st">"sim_name"</span>]<span class="sc">}</span><span class="ss">.nam"</span>,</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">'save_flows'</span>: <span class="va">True</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>dis <span class="op">=</span> {</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">'nlay'</span>: <span class="dv">1</span>, </span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">'nrow'</span>: <span class="dv">20</span>, </span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">'ncol'</span>: <span class="dv">30</span>,</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">'delr'</span>: <span class="fl">0.5</span>, </span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">'delc'</span>: <span class="fl">0.5</span>, </span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">'top'</span> : <span class="fl">0.0</span>, </span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">'botm'</span>: <span class="op">-</span><span class="fl">1.0</span> </span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>ic <span class="op">=</span> {</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">'strt'</span>: <span class="dv">10</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>chd_data <span class="op">=</span> []</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> row <span class="kw">in</span> <span class="bu">range</span>(dis[<span class="st">'nrow'</span>]):</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    chd_data.append([(<span class="dv">0</span>, row, <span class="dv">0</span>), <span class="fl">10.0</span>])       <span class="co"># Condición en la pared izquierda</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    chd_data.append([(<span class="dv">0</span>, row, dis[<span class="st">'ncol'</span>] <span class="op">-</span> <span class="dv">1</span>), <span class="fl">5.0</span>]) <span class="co"># Condición en la pared derecha</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>chd <span class="op">=</span> {</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">'stress_period_data'</span>: chd_data,     </span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>k_data <span class="op">=</span> np.random.rand(dis[<span class="st">'nlay'</span>], dis[<span class="st">'nrow'</span>], dis[<span class="st">'ncol'</span>])<span class="op">*</span><span class="fl">1.0</span> </span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>k_data[:,<span class="dv">5</span>:<span class="dv">15</span>,<span class="dv">10</span>:<span class="dv">20</span>] <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>npf <span class="op">=</span> {</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    <span class="st">'save_specific_discharge'</span>: <span class="va">True</span>,</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    <span class="st">'k'</span>: k_data, </span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>oc <span class="op">=</span> {</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>    <span class="st">'budget_filerecord'</span>: <span class="ss">f"</span><span class="sc">{</span>init[<span class="st">'sim_name'</span>]<span class="sc">}</span><span class="ss">.bud"</span>,</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>    <span class="st">'head_filerecord'</span>: <span class="ss">f"</span><span class="sc">{</span>init[<span class="st">'sim_name'</span>]<span class="sc">}</span><span class="ss">.hds"</span>,</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>    <span class="st">'saverecord'</span>: [(<span class="st">"HEAD"</span>, <span class="st">"ALL"</span>), (<span class="st">"BUDGET"</span>, <span class="st">"ALL"</span>)],</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>    <span class="st">'printrecord'</span>: [(<span class="st">"HEAD"</span>, <span class="st">"ALL"</span>)]</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Función <code>xmf6.gwf.initialize()</code>.
+<ul>
+<li>SIM</li>
+<li>TDIS</li>
+<li>IMS</li>
+</ul></li>
+<li>Función <code>xmf6.gwf.build()</code>.
+<ul>
+<li>GWF
+<ul>
+<li>DIS</li>
+<li>IC</li>
+<li>CHD</li>
+<li>NPF</li>
+<li>WEL</li>
+<li>OC</li>
+</ul></li>
+</ul></li>
+</ul>
+<div id="e7a9c3fa-8788-4696-947a-2b414af28f02" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>o_sim <span class="op">=</span> xmf6.gwf.initialize(init <span class="op">=</span> init, time <span class="op">=</span> time, ims <span class="op">=</span> ims)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+
+sim configuration::
+  sim_name = flow
+  exe_name = C:\Users\luiggi\Documents\GitSites\xmf6\mf6\windows\mf6
+
+
+
+time configuration::
+  units = DAYS
+  nper = 1
+  perioddata = [(1.0, 1, 1.0)]
+---
+
+
+
+numerical solution configuration::
+---
+</code></pre>
+</div>
+</div>
+<div id="5dd9fb6e-7d3e-47f1-8e02-90d8630b0a20" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>o_gwf <span class="op">=</span> xmf6.gwf.build(o_sim,</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                       gwf <span class="op">=</span> gwf, dis <span class="op">=</span> dis, ic <span class="op">=</span> ic, chd <span class="op">=</span> chd, npf <span class="op">=</span> npf, oc <span class="op">=</span> oc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+
+numerical model configuration::
+  modelname = flow
+  model_nam_file = flow.nam
+  save_flows = True
+---
+
+
+
+spatial discretization configuration::
+  nlay = 1
+  nrow = 20
+  ncol = 30
+  delr = 0.5
+  delc = 0.5
+  top = 0.0
+  botm = -1.0
+---
+
+
+
+initial conditions configuration::
+  strt = 10
+---
+
+
+
+boundary conditions configuration::
+  stress_period_data = [[(0, 0, 0), 10.0], [(0, 0, 29), 5.0], [(0, 1, 0), 10.0], [(0, 1, 29), 5.0], [(0, 2, 0), 10.0], [(0, 2, 29), 5.0], [(0, 3, 0), 10.0], [(0, 3, 29), 5.0], [(0, 4, 0), 10.0], [(0, 4, 29), 5.0], [(0, 5, 0), 10.0], [(0, 5, 29), 5.0], [(0, 6, 0), 10.0], [(0, 6, 29), 5.0], [(0, 7, 0), 10.0], [(0, 7, 29), 5.0], [(0, 8, 0), 10.0], [(0, 8, 29), 5.0], [(0, 9, 0), 10.0], [(0, 9, 29), 5.0], [(0, 10, 0), 10.0], [(0, 10, 29), 5.0], [(0, 11, 0), 10.0], [(0, 11, 29), 5.0], [(0, 12, 0), 10.0], [(0, 12, 29), 5.0], [(0, 13, 0), 10.0], [(0, 13, 29), 5.0], [(0, 14, 0), 10.0], [(0, 14, 29), 5.0], [(0, 15, 0), 10.0], [(0, 15, 29), 5.0], [(0, 16, 0), 10.0], [(0, 16, 29), 5.0], [(0, 17, 0), 10.0], [(0, 17, 29), 5.0], [(0, 18, 0), 10.0], [(0, 18, 29), 5.0], [(0, 19, 0), 10.0], [(0, 19, 29), 5.0]]
+---
+
+
+
+flow properties configuration::
+  save_specific_discharge = True
+  k = [[[0.60954214 0.4165278  0.59880469 0.77742402 0.83425926 0.29178523
+   0.07997176 0.63055316 0.10080799 0.84034342 0.58251966 0.14685616
+   0.71997601 0.19212944 0.16469966 0.24887592 0.73077801 0.90353812
+   0.02421148 0.3209033  0.42660233 0.33009569 0.71149392 0.06640044
+   0.53761123 0.15403321 0.73331497 0.6325598  0.4233338  0.10060297]
+  [0.58172865 0.59489213 0.47720888 0.7186139  0.17088769 0.27663864
+   0.4431125  0.10531354 0.56255331 0.18103481 0.87588637 0.60414895
+   0.07070339 0.61333832 0.58070383 0.24453826 0.84468363 0.31074807
+   0.3366561  0.01063396 0.86642706 0.33885709 0.52127048 0.43854741
+   0.63139824 0.88296731 0.61651247 0.62249954 0.53600603 0.79623583]
+  [0.42651659 0.85189251 0.76862176 0.0192641  0.92486633 0.45859273
+   0.95222947 0.74718305 0.7303584  0.96669004 0.03797059 0.41581452
+   0.55995294 0.29258672 0.50915158 0.67583881 0.36547336 0.06630294
+   0.97127454 0.60900597 0.15396387 0.60133809 0.8868297  0.36459134
+   0.47613916 0.1834512  0.15922238 0.74681327 0.80542287 0.63698214]
+  [0.08493063 0.21007637 0.31864139 0.10171217 0.10084855 0.65461473
+   0.27637435 0.76873855 0.80473152 0.23698279 0.21767036 0.7080493
+   0.49738631 0.09256222 0.74180426 0.85496122 0.29785593 0.30898477
+   0.68138992 0.21398019 0.78980619 0.91025677 0.84595157 0.33737856
+   0.62253958 0.71005846 0.38156734 0.73047296 0.08941825 0.5618577 ]
+  [0.71061168 0.29468957 0.16549578 0.66360553 0.72325996 0.71499216
+   0.08569351 0.37260317 0.131688   0.5795041  0.95926536 0.11343725
+   0.27230613 0.83758215 0.30964065 0.37883134 0.29639367 0.63075808
+   0.81085514 0.49520185 0.97593826 0.14202662 0.67044399 0.92963538
+   0.80701181 0.56924532 0.75538746 0.96009188 0.15138022 0.21820589]
+  [0.92162446 0.11777162 0.66816536 0.91985051 0.93065289 0.24674941
+   0.51027642 0.35290523 0.15075646 0.21425436 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.03633807 0.32857986 0.29322688 0.00196099
+   0.52364293 0.26822774 0.37733374 0.61720164 0.79750417 0.63872012]
+  [0.40899421 0.89045582 0.63089737 0.40582278 0.1574124  0.97798622
+   0.25798593 0.92841246 0.77109303 0.66305755 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.4260733  0.5711068  0.06047622 0.58723017
+   0.37066854 0.03590139 0.83174182 0.68410482 0.19430228 0.74566653]
+  [0.48909608 0.40143397 0.71766863 0.88823988 0.19841955 0.46523447
+   0.23884811 0.57743066 0.11683424 0.44784673 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.11639044 0.74145373 0.14097811 0.88323276
+   0.32756397 0.6785058  0.59312826 0.72339001 0.35930303 0.07056934]
+  [0.47188999 0.67402566 0.0598525  0.72428385 0.88550466 0.3263359
+   0.56709129 0.11379937 0.8986357  0.17379803 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.72221205 0.89874218 0.69565134 0.36238807
+   0.11179486 0.78635862 0.57046664 0.58615268 0.59553973 0.94976285]
+  [0.50503726 0.6355614  0.44647873 0.03569859 0.44456797 0.65613192
+   0.01214675 0.41611311 0.76761505 0.66311039 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.56194922 0.03204619 0.95461408 0.75246119
+   0.73386853 0.21528988 0.87108699 0.31797345 0.84903037 0.19728488]
+  [0.16191081 0.20698614 0.36144665 0.18948286 0.81532856 0.96762703
+   0.26893315 0.75286238 0.27806896 0.98215767 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.09628858 0.46389259 0.57139433 0.05555563
+   0.06641261 0.10354844 0.63821466 0.64589331 0.5987501  0.33380669]
+  [0.21081234 0.46304405 0.94228682 0.57480994 0.99385803 0.87440511
+   0.24412777 0.3378692  0.80118833 0.94706171 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.54011187 0.70446813 0.85334526 0.53270045
+   0.91712264 0.97645601 0.9776483  0.94335103 0.55395428 0.49716771]
+  [0.7351477  0.1976568  0.04880156 0.77312046 0.30244749 0.7289515
+   0.96047552 0.17623309 0.86618092 0.51502403 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.55417786 0.46583961 0.65164091 0.46724248
+   0.67813855 0.97581013 0.35308116 0.23586903 0.60014789 0.15751739]
+  [0.71182831 0.81341408 0.24928742 0.81940459 0.09119011 0.14351805
+   0.87831421 0.78086573 0.24781307 0.72275756 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.14295445 0.17638646 0.27632532 0.40086105
+   0.75169229 0.64590893 0.44500937 0.97433426 0.85282528 0.47198021]
+  [0.97070155 0.79323625 0.0926608  0.33863488 0.65114285 0.05857631
+   0.86041702 0.58136518 0.02877632 0.62039913 0.1        0.1
+   0.1        0.1        0.1        0.1        0.1        0.1
+   0.1        0.1        0.8772467  0.71246371 0.64517283 0.6291897
+   0.5008465  0.10873085 0.64639637 0.23427497 0.80667509 0.60830658]
+  [0.67902921 0.41613792 0.15886561 0.01517551 0.32729675 0.31170932
+   0.45055506 0.7638732  0.90504783 0.27400773 0.04283054 0.42026607
+   0.20658033 0.97060952 0.73686589 0.07027035 0.27332108 0.75062355
+   0.23843715 0.81012994 0.07389765 0.64320421 0.95219903 0.69276063
+   0.72732776 0.86836107 0.96046007 0.90047045 0.5935871  0.18096066]
+  [0.74038223 0.88442429 0.94867736 0.23565713 0.27983582 0.92766227
+   0.23025879 0.29135481 0.00782693 0.89991441 0.52855816 0.3398044
+   0.12428893 0.09020395 0.7062567  0.6790088  0.76948659 0.81606104
+   0.82018279 0.77556398 0.0196206  0.44562157 0.85888991 0.75357674
+   0.73229664 0.04684407 0.99578841 0.62992741 0.44665919 0.64277267]
+  [0.89412357 0.64700497 0.98000352 0.1885739  0.99814334 0.89585734
+   0.85589407 0.15125979 0.84876382 0.12537594 0.2655866  0.62314632
+   0.88980534 0.4433292  0.41013799 0.85601778 0.97011184 0.76082126
+   0.35077519 0.86173279 0.53425341 0.09267336 0.24040696 0.32353725
+   0.3740524  0.94398973 0.63865311 0.53522329 0.98313504 0.33025271]
+  [0.3454997  0.19925824 0.82498561 0.61767584 0.3233694  0.30111378
+   0.88094893 0.37886199 0.25491263 0.12571527 0.89747098 0.60414257
+   0.21775654 0.32055469 0.25358899 0.75421632 0.56402424 0.70097943
+   0.26981733 0.70447768 0.12850656 0.08597061 0.32757756 0.61899271
+   0.85444533 0.00866161 0.62179413 0.54558051 0.64146646 0.72862054]
+  [0.18398859 0.25501667 0.19902577 0.69882713 0.00929394 0.51422457
+   0.59863361 0.27425144 0.62329835 0.57342179 0.7367898  0.9850804
+   0.01306854 0.76514079 0.41054708 0.87316507 0.170627   0.07714944
+   0.3820619  0.96639174 0.33743642 0.29670213 0.40844918 0.86048357
+   0.46868387 0.90048778 0.24200684 0.40585159 0.01574999 0.98852646]]]
+---
+
+
+
+output configuration::
+  budget_filerecord = flow.bud
+  head_filerecord = flow.hds
+  saverecord = [('HEAD', 'ALL'), ('BUDGET', 'ALL')]
+  printrecord = [('HEAD', 'ALL')]
+---
+</code></pre>
+</div>
+</div>
+<div id="a932ff84-179c-46c2-b0be-8484c35ba722" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>o_sim.write_simulation(silent <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="55d79b1c-53d4-45dd-9dff-f22597681f7e" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>o_sim.run_simulation(silent<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>FloPy is using the following executable to run the model: ..\..\..\..\mf6\windows\mf6.exe
+                                   MODFLOW 6
+                U.S. GEOLOGICAL SURVEY MODULAR HYDROLOGIC MODEL
+                            VERSION 6.6.1 02/10/2025
+
+   MODFLOW 6 compiled Feb 10 2025 17:37:25 with Intel(R) Fortran Intel(R) 64
+   Compiler Classic for applications running on Intel(R) 64, Version 2021.7.0
+                             Build 20220726_000000
+
+This software has been approved for release by the U.S. Geological 
+Survey (USGS). Although the software has been subjected to rigorous 
+review, the USGS reserves the right to update the software as needed 
+pursuant to further analysis and review. No warranty, expressed or 
+implied, is made by the USGS or the U.S. Government as to the 
+functionality of the software and related material nor shall the 
+fact of release constitute any such warranty. Furthermore, the 
+software is released on condition that neither the USGS nor the U.S. 
+Government shall be held liable for any damages resulting from its 
+authorized or unauthorized use. Also refer to the USGS Water 
+Resources Software User Rights Notice for complete use, copyright, 
+and distribution information.
+
+ 
+ MODFLOW runs in SEQUENTIAL mode
+ 
+ Run start date and time (yyyy/mm/dd hh:mm:ss): 2025/05/18 16:35:52
+ 
+ Writing simulation list file: mfsim.lst
+ Using Simulation name file: mfsim.nam
+ 
+    Solving:  Stress period:     1    Time step:     1
+ 
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2025/05/18 16:35:52
+ Elapsed run time:  0.118 Seconds
+ 
+ Normal termination of simulation.</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>(True, [])</code></pre>
+</div>
+</div>
+<div id="45279beb-594f-4552-b21d-c93318c25735" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Recuperamos los resultados de la simulación ---</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>head <span class="op">=</span> xmf6.gwf.get_head(o_sim, o_gwf)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>qx, qy, qz, n_q <span class="op">=</span> xmf6.gwf.get_specific_discharge(o_sim, o_gwf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="f7344763-04b1-487a-a6be-25b9a06d4036" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Parámetros para las gráficas ---</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> o_gwf.modelgrid</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>x, y, z <span class="op">=</span> grid.xyzcellcenters</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>xticks <span class="op">=</span> np.linspace(grid.extent[<span class="dv">0</span>], grid.extent[<span class="dv">1</span>], <span class="dv">7</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>yticks <span class="op">=</span> np.linspace(grid.extent[<span class="dv">2</span>], grid.extent[<span class="dv">3</span>], <span class="dv">5</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>xlabels <span class="op">=</span> [<span class="ss">f'</span><span class="sc">{</span>x<span class="sc">:1.1f}</span><span class="ss">'</span> <span class="cf">for</span> x <span class="kw">in</span> xticks]</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>ylabels <span class="op">=</span> [<span class="ss">f'</span><span class="sc">{</span>y<span class="sc">:1.1f}</span><span class="ss">'</span> <span class="cf">for</span> y <span class="kw">in</span> yticks]</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>kvmin <span class="op">=</span> <span class="fl">1.0</span> <span class="co">#np.nanmin(k_data)</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>kvmax <span class="op">=</span> <span class="fl">0.0</span> <span class="co">#np.nanmax(k_data)</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>hvmin <span class="op">=</span> np.nanmin(head)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>hvmax <span class="op">=</span> np.nanmax(head)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>qvmin <span class="op">=</span> <span class="fl">0.00</span> <span class="co">#np.nanmin(n_q)</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>qvmax <span class="op">=</span> <span class="fl">0.35</span> <span class="co">#np.nanmax(n_q)</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Definición de la figura ---</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2, ax3) <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>, figsize <span class="op">=</span>(<span class="dv">10</span>,<span class="dv">10</span>))</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Gráfica 1. ---</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>kview <span class="op">=</span> flopy.plot.PlotMapView(model <span class="op">=</span> o_gwf, ax <span class="op">=</span> ax1)</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>kview.plot_grid(linewidths <span class="op">=</span> <span class="fl">0.5</span>, alpha <span class="op">=</span> <span class="fl">0.5</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>k_ac <span class="op">=</span> kview.plot_array(k_data, cmap <span class="op">=</span> <span class="st">"gist_heat"</span>, vmin <span class="op">=</span> kvmin, vmax <span class="op">=</span> kvmax)</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>k_cb <span class="op">=</span> plt.colorbar(k_ac, ax <span class="op">=</span> ax1, label <span class="op">=</span> <span class="st">"$k$"</span>, </span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>                    ticks <span class="op">=</span> [<span class="fl">0.0</span>, <span class="fl">0.25</span>, <span class="fl">0.50</span>, <span class="fl">0.75</span>, <span class="fl">1.0</span>],</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>                    cax <span class="op">=</span> xmf6.vis.cax(ax1, k_ac))</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>k_cb.ax.tick_params(labelsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="st">"Permeabilidad hidráulica $k$"</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>ax1.set_ylabel(<span class="st">"$y$ (m)"</span>, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>ax1.set_xticks(ticks <span class="op">=</span> xticks, labels <span class="op">=</span> xlabels, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>ax1.set_yticks(ticks <span class="op">=</span> yticks, labels <span class="op">=</span> ylabels, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>ax1.set_aspect(<span class="st">'equal'</span>)</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Gráfica 2. ---</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>hview <span class="op">=</span> flopy.plot.PlotMapView(model <span class="op">=</span> o_gwf, ax <span class="op">=</span> ax2)</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>h_ac <span class="op">=</span> hview.plot_array(head, cmap <span class="op">=</span> <span class="st">"YlGnBu"</span>, vmin <span class="op">=</span> hvmin, vmax <span class="op">=</span> hvmax, alpha <span class="op">=</span> <span class="fl">0.75</span>)</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>hview.contour_array(head, levels <span class="op">=</span> <span class="dv">30</span>, cmap <span class="op">=</span> <span class="st">"bone"</span>, linewidths <span class="op">=</span> <span class="fl">1.0</span>)</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>ax2.quiver(x, y, qx[<span class="dv">0</span>], qy[<span class="dv">0</span>], scale <span class="op">=</span> <span class="dv">3</span>, </span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>           color <span class="op">=</span> <span class="st">'k'</span>, linewidth <span class="op">=</span> <span class="fl">0.95</span>, pivot <span class="op">=</span> <span class="st">'middle'</span>)</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>h_cb <span class="op">=</span> plt.colorbar(h_ac, ax <span class="op">=</span> ax2, label <span class="op">=</span> <span class="st">"$h$ (m)"</span>, </span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>                    cax <span class="op">=</span> xmf6.vis.cax(ax2, h_ac))</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>h_cb.ax.tick_params(labelsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>ax2.set_title(<span class="st">"Carga hidráulica $h$"</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>ax2.set_ylabel(<span class="st">"$y$ (m)"</span>, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>ax2.set_xticks(ticks <span class="op">=</span> xticks, labels <span class="op">=</span> xlabels, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>ax2.set_yticks(ticks <span class="op">=</span> yticks, labels <span class="op">=</span> ylabels, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>ax2.set_aspect(<span class="st">'equal'</span>)</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Gráfica 3. ---</span></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>fview <span class="op">=</span> flopy.plot.PlotMapView(model <span class="op">=</span> o_gwf, ax <span class="op">=</span> ax3)</span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>q_ac <span class="op">=</span> fview.plot_array(n_q, cmap <span class="op">=</span> <span class="st">"winter"</span>, vmin <span class="op">=</span> qvmin, vmax <span class="op">=</span> qvmax, alpha <span class="op">=</span> <span class="fl">0.25</span>)</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>fview.contour_array(head, levels <span class="op">=</span> <span class="dv">20</span>, cmap <span class="op">=</span> <span class="st">'bone'</span>, linewidths <span class="op">=</span> <span class="fl">0.75</span>, )</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>ax3.streamplot(x, y[::<span class="op">-</span><span class="dv">1</span>][:], qx[<span class="dv">0</span>], qy[<span class="dv">0</span>][::<span class="op">-</span><span class="dv">1</span>], </span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>               density <span class="op">=</span> [<span class="dv">2</span>, <span class="fl">1.5</span>], linewidth <span class="op">=</span> <span class="fl">0.75</span>, broken_streamlines <span class="op">=</span> <span class="va">True</span>, </span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>               color <span class="op">=</span> n_q, cmap <span class="op">=</span> <span class="st">"winter"</span>, </span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>               arrowstyle <span class="op">=</span> <span class="st">"-&gt;"</span>, arrowsize <span class="op">=</span> <span class="fl">0.75</span>,  )</span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>q_cb <span class="op">=</span> plt.colorbar(q_ac, ax<span class="op">=</span>ax3, label<span class="op">=</span><span class="st">"$q$"</span>, </span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a>                    ticks <span class="op">=</span> np.linspace(<span class="fl">0.0</span>, <span class="fl">0.35</span>, <span class="dv">7</span>),</span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>                    <span class="bu">format</span> <span class="op">=</span> <span class="st">"</span><span class="sc">{x:3.2f}</span><span class="st">"</span>,</span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>                    cax <span class="op">=</span> xmf6.vis.cax(ax3, q_ac))</span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>q_cb.ax.tick_params(labelsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>ax3.set_title(<span class="st">"Descarga específica $q$"</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>ax3.set_xlabel(<span class="st">"$x$ (m)"</span>, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>ax3.set_ylabel(<span class="st">"$y$ (m)"</span>, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>ax3.set_xticks(ticks <span class="op">=</span> xticks, labels <span class="op">=</span> xlabels, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>ax3.set_yticks(ticks <span class="op">=</span> yticks, labels <span class="op">=</span> ylabels, fontsize <span class="op">=</span> <span class="dv">8</span>)</span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>ax3.set_aspect(<span class="st">'equal'</span>)</span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">"04_MF6.pdf"</span>)</span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="04_MF6_GWF_v2_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./03_MF6_GWF_v1.html" class="pagination-link" aria-label="MODFLOW 6: simulación de flujo v 1.0">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">MODFLOW 6: simulación de flujo v 1.0</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./05_MF6_GWF_wells.html" class="pagination-link" aria-label="05_MF6_GWF_wells.html">
+        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">05_MF6_GWF_wells.html</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

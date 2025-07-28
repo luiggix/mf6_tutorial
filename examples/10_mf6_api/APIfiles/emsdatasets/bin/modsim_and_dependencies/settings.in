@@ -1,0 +1,4 @@
+"MODSIM-MF6 Max Iter"   500  MaxIter
+"Flow Tolerance"          1  FlowTolerance     m3
+"Volume Tolerance"        2  VolumeTolerance   m3
+"Verbose Output"          1 

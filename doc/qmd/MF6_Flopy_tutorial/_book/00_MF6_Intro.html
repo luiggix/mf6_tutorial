@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.29">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>1&nbsp; MODFLOW 6: introducción. – Tutorial: Modflow 6 + Flopy</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./01_MF6_GWF_init.html" rel="next">
+<link href="./index.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-0815c480559380816a4d1ea211a47e91.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-485d01fc63b59abcd3ee1bf1e8e2748d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./00_MF6_Intro.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">MODFLOW 6: introducción.</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Tutorial: Modflow 6 + Flopy</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introducción</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./00_MF6_Intro.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">MODFLOW 6: introducción.</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_MF6_GWF_init.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">MODFLOW 6: inicializando una simulación.</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_MF6_GWF_paq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">MODFLOW 6: modelo GWF.</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_MF6_GWF_v1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">MODFLOW 6: simulación de flujo v 1.0</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_MF6_GWF_v2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">04_MF6_GWF_v2.html</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_MF6_GWF_wells.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">05_MF6_GWF_wells.html</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#resumen." id="toc-resumen." class="nav-link active" data-scroll-target="#resumen."><span class="header-section-number">1.1</span> Resumen.</a></li>
+  <li><a href="#introducción." id="toc-introducción." class="nav-link" data-scroll-target="#introducción."><span class="header-section-number">2</span> Introducción.</a></li>
+  <li><a href="#componentes." id="toc-componentes." class="nav-link" data-scroll-target="#componentes."><span class="header-section-number">3</span> Componentes.</a></li>
+  <li><a href="#simulación-de-flujo-con-gwf." id="toc-simulación-de-flujo-con-gwf." class="nav-link" data-scroll-target="#simulación-de-flujo-con-gwf."><span class="header-section-number">4</span> Simulación de flujo con GWF.</a>
+  <ul class="collapse">
+  <li><a href="#la-simulación." id="toc-la-simulación." class="nav-link" data-scroll-target="#la-simulación."><span class="header-section-number">4.1</span> La simulación.</a></li>
+  <li><a href="#la-discretización-temporal." id="toc-la-discretización-temporal." class="nav-link" data-scroll-target="#la-discretización-temporal."><span class="header-section-number">4.2</span> La discretización temporal.</a>
+  <ul class="collapse">
+  <li><a href="#ejemplo-1.-periodo-de-estrés." id="toc-ejemplo-1.-periodo-de-estrés." class="nav-link" data-scroll-target="#ejemplo-1.-periodo-de-estrés."><span class="header-section-number">4.2.1</span> Ejemplo 1. Periodo de estrés.</a></li>
+  </ul></li>
+  <li><a href="#la-solución-numérica." id="toc-la-solución-numérica." class="nav-link" data-scroll-target="#la-solución-numérica."><span class="header-section-number">4.3</span> La solución numérica.</a></li>
+  <li><a href="#los-modelos." id="toc-los-modelos." class="nav-link" data-scroll-target="#los-modelos."><span class="header-section-number">4.4</span> Los modelos.</a>
+  <ul class="collapse">
+  <li><a href="#modelos-numéricos." id="toc-modelos-numéricos." class="nav-link" data-scroll-target="#modelos-numéricos."><span class="header-section-number">4.4.1</span> Modelos numéricos.</a></li>
+  <li><a href="#groundwater-flow-model-gwf" id="toc-groundwater-flow-model-gwf" class="nav-link" data-scroll-target="#groundwater-flow-model-gwf"><span class="header-section-number">4.4.2</span> Groundwater Flow Model (GWF)</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#paquetes." id="toc-paquetes." class="nav-link" data-scroll-target="#paquetes."><span class="header-section-number">5</span> Paquetes.</a></li>
+  <li><a href="#referencias" id="toc-referencias" class="nav-link" data-scroll-target="#referencias"><span class="header-section-number">6</span> Referencias</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">MODFLOW 6: introducción.</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="resumen." class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="resumen."><span class="header-section-number">1.1</span> Resumen.</h2>
+<p>El propósito de este documento es describir la arquitectura de MODFLOW 6, sus componentes y paquetes, así como los elementos principales que se usan en una simulación de flujo con el modelo GWF. Esta descripción se basa en la documentación de MODFLOW 6 y solo se explican los conceptos principales para entender la forma en que interactúan todas las componentes y paquetes durante una simulación.</p>
+<p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/">
+<a property="dct:title" rel="cc:attributionURL" href="https://github.com/luiggix/RTWMA/">MODFLOW 6: introducción</a> by <b>Luis M. de la Cruz Salas (2025)</b> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Attribution-ShareAlike 4.0 International<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1"></a>.
+</p>
+</section>
+<section id="introducción." class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Introducción.</h1>
+<p><a href="https://www.usgs.gov/software/modflow-6-usgs-modular-hydrologic-model">MODFLOW 6</a> utiliza la Programación Orientada a Objetos (POO) para admitir una amplia gama de capacidades y para integrar las funcionalidades de todas las versiones y variantes de MODFLOW anteriores.</p>
+<p>Esta última versión está centrada en la solución numérica de uno o más modelos hidrológicos numéricos que pueden conectarse e interactuar entre ellos. Cada modelo es un objeto de una clase que encapsula datos y métodos. Se pueden crear múltiples objetos (que representan modelos hidrológicos) en una sola simulación.</p>
+<p>Además, se utilizan los conceptos de abstracción y herencia para gestionar y ocultar la complejidad de los modelos, y para permitir que otros autores agreguen nuevos modelos de procesos hidrológicos, de forma sistemática y eficiente, sin interferir con otros desarrollos.</p>
+<p>Este enfoque ha dado como resultado componentes de simulación genéricos, denominados <strong>Modelos Numéricos</strong>, <strong>Intercambios Numéricos</strong> y <strong>Soluciones Numéricas</strong>, diseñados para funcionar conjuntamente y abordar muchos de los requisitos de diseño de esta nueva versión.</p>
+</section>
+<section id="componentes." class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Componentes.</h1>
+<p>En MODFLOW 6, una simulación consiste de una única ejecución, que puede incluir múltiples modelos de flujo (y de transporte). Estos modelos son configurados y controlados por componentes y paquetes.</p>
+<p>Una componente es un término general para describir una parte de MODFLOW 6, que puede ser un módulo, un objeto, una subrutina o un conjunto de estos. La figura 1 muestra las componentes principales que pueden ser usadas en una simulación de MODFLOW 6.</p>
+<figure class="figure">
+<img src="../figures/components_mf6.png" width="800px" class="figure-img">
+<figcaption>
+Figura 1. Diagrama de componentes de MODFLOW 6. Tomada de [1].
+</figcaption>
+</figure>
+<p>Una simulación en MODFLOW 6 típicamente se basa en cuatro componentes, como se explica en [1]: * <strong>Models</strong>. Un modelo numérico resuelve un proceso hidrológico; por ejemplo, el <em>GWF model</em>, resuelve numéricamente la ecuación de flujo subterráneo usando el método CVFD (<em>Control-Volume Finite-Difference</em>). * <strong>Exchange</strong>. Un intercambio numérico facilita la comunicación entre dos modelos; por ejemplo, un intercambio GWF-GWF, permite que algunas celdas de un modelo GWF estén hidráulicamente conectadas con celdas del otro modelo GWF. * <strong>Solutions</strong>. Una solución numérica resuelve uno o más modelos hidrológicos y utiliza métodos iterativos para resolver sistemas lineales y no-lineales. * <strong>Timing</strong>. Este módulo controla el paso de tiempo y determina el fin de una simulación.</p>
+</section>
+<section id="simulación-de-flujo-con-gwf." class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Simulación de flujo con GWF.</h1>
+<p>En la figura 2 se muestra una representación de una simulación en MODFLOW 6 que contiene un solo modelo de GWF.</p>
+<figure class="figure">
+<img src="../figures/modflow00.png" width="300px" hspace="5" vspace="5" class="figure-img">
+<figcaption>
+Figura 2. Diagrama que muestra las componentes que se usan para la simulación de un solo modelo GWF. Las componentes son: (1) una simulación (que es el programa principal), (2) una componente para gestionar el tiempo, (3) una componente para gestionar la solución numérica y (4) un único modelo GWF. Figura tomada de [2].
+</figcaption>
+</figure>
+<section id="la-simulación." class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="la-simulación."><span class="header-section-number">4.1</span> La simulación.</h2>
+<p>Una simulación consiste de una ejecución que puede incluir varios modelos (de flujo, de transporte, de intercambios, numéricos, etcétera). La simulación es la componente de mayor nivel y está controlada por el programa principal. La siguiente figura, tomada de [1], esquematiza el flujo de una simulación.</p>
+<p><img src="../figures/modflow01.png" width="200px" hspace="5" vspace="5" style="float: left;"></p>
+<p>El programa principal ejecuta varios procedimientos, conocidos como <strong><em>primary procedures</em></strong> en la secuencia apropiada para realizar y controlar la simulación.</p>
+<ul>
+<li>CR: Crea objetos de tipo <em>model</em>, <em>package</em>, <em>exchange</em> y/o <em>solution</em>.</li>
+<li>DF: Define algunos atributos de los objetos, por ejemplo el tamaño de algunos arreglos.</li>
+<li>AR: Genera los arreglos. También lee información que será constante durante toda la simulación.</li>
+<li>TU: Incrementa las variables del tiempo y calcula la longitudes del paso de tiempo.</li>
+<li>RP: Lee la información de los archivos de entrada, conforme se necesite, para actualizar los estreses hidrológicos u otras entradas que varían con el tiempo.</li>
+<li>CA: Actualiza las variables dependientes. Para soluciones numéricas, utiliza métodos iterativos para resolver sistemas de ecuaciones no lineales.</li>
+<li>OT: Escribe los resultados de la simulación en archivos para cada paso de tiempo o como sea requerido.</li>
+<li>FP: Escribe mensajes de terminación y cierra todos los archivos.</li>
+<li>DA: Desaloja toda la memoria.</li>
+</ul>
+<p>Como puede observarse TU, RP, CA y OT se ejecutan varias veces dentro del ciclo temporal. Cada paso en el diagrama representa ejecuciones para todos los <em>models</em>, <em>exchanges</em> y <em>solutions</em> que forman parte de la simulación.</p>
+</section>
+<section id="la-discretización-temporal." class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="la-discretización-temporal."><span class="header-section-number">4.2</span> La discretización temporal.</h2>
+<p>Una simulación se divide en intervalos de tiempo, conocidos como periodos de estrés, <strong>durante los cuales los datos de entrada de todos los estreses externos permanecen constantes</strong>. Los periodos de estrés se dividen a su vez en pasos de tiempo, como se muestra en la siguiente figura (véase <strong>Timing Module</strong> en [1], pp 10-12):</p>
+<p><img src="../figures/time_step.png" width="500px"></p>
+<p>Esta componente implementa y ejecuta las operaciones del procedimiento primario <em>Time Update</em> (TU).</p>
+<p>La tabla siguiente describe algunos de los parámetros que se usan en este módulo:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 28%">
+<col style="width: 42%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Tipo</th>
+<th style="text-align: left;">Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>PERLEN</code></td>
+<td>double</td>
+<td style="text-align: left;">es la longitud del periodo de estrés</td>
+</tr>
+<tr class="even">
+<td><code>NSTP</code></td>
+<td>integer</td>
+<td style="text-align: left;">es el número de pasos de tiempo en un periodo de estrés</td>
+</tr>
+<tr class="odd">
+<td><code>TSMULT</code></td>
+<td>double</td>
+<td style="text-align: left;">es el multiplicador para calcular la longitud de pasos de tiempo sucesivos</td>
+</tr>
+</tbody>
+</table>
+<p>Para calcular la longitud del primer paso de tiempo en un periodo de estrés se hace lo siguiente:</p>
+<ul>
+<li>Para TSMULT <span class="math inline">\(= 1\)</span>:</li>
+</ul>
+<p><span class="math display">\[
+\Delta t_1= \frac{\text{PERLEN}}{\text{NSTP}}
+\]</span></p>
+<ul>
+<li>Para TSMULT <span class="math inline">\(\neq 1\)</span>:</li>
+</ul>
+<p><span class="math display">\[
+\Delta t_1= \text{PERLEN} \frac{\text{TSMULT} - 1}{\text{TSMULT}^\text{nstp}-1}
+\]</span></p>
+<p>La longitud de cada paso de tiempo sucesivo es calculada multiplicando la longitud del paso de tiempo previo por <code>TSMULT</code>.</p>
+<p><span class="math display">\[
+\Delta t = \Delta t_{old} \text{TSMULT}
+\]</span></p>
+<section id="ejemplo-1.-periodo-de-estrés." class="level3 alert alert-block alert-info" data-number="4.2.1">
+<h3 data-number="4.2.1" class="anchored" data-anchor-id="ejemplo-1.-periodo-de-estrés."><span class="header-section-number">4.2.1</span> Ejemplo 1. Periodo de estrés.</h3>
+<p>Considérese un modelo de flujo GWF que usa los paquetes de <em>River</em> y <em>Well</em>, en donde el tiempo de simulación es de <span class="math inline">\(90\)</span> días, con pasos de tiempo de un día.</p>
+<ul>
+<li><p>Si el nivel del río o el bombeo de los pozos solo cambian cada <span class="math inline">\(30\)</span> días, se pueden usar <span class="math inline">\(3\)</span> períodos de estrés, cada uno de <span class="math inline">\(30\)</span> días.</p></li>
+<li><p>De igual manera, si el bombeo o el nivel del río varían cada <span class="math inline">\(3\)</span> días, se usarían <span class="math inline">\(30\)</span> períodos de estrés de <span class="math inline">\(3\)</span> días.</p></li>
+<li><p>Cuando comienza un nuevo período de estrés, se deben redefinir todos los datos de estrés; sin embargo, la mayoría de los paquetes podrían reutilizar los datos del período de estrés anterior.</p></li>
+<li><p>En este ejemplo, se podrían reutilizar los datos del río en un nuevo período de estrés cuando solo cambian las tasas de bombeo mientras que el nivel del río permanece igual.</p></li>
+</ul>
+<p><strong>NOTA.</strong> Los períodos de estrés se implementan solo por conveniencia. Los paquetes que definen estreses dependientes del tiempo leen los datos de entrada en cada período de estrés. Los períodos de estrés facilitan la gestión de datos de entrada que se mantienen constantes por múltiples intervalos de tiempo. Sin embargo, no son inusuales las situaciones en las que surge la necesidad de cambiar los datos de estrés en cada paso de tiempo. En este caso, cada período de estrés debería constar de un solo paso de tiempo; como alternativa, se puede utilizar la funcionalidad de series temporales (<em>Time Series</em>) que está integrada en MODFLOW 6, véase <strong>Utilities - Time Series</strong> en [1], pp 27-28.</p>
+</section>
+</section>
+<section id="la-solución-numérica." class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="la-solución-numérica."><span class="header-section-number">4.3</span> La solución numérica.</h2>
+<p>La componente <em>Numerical Solution</em> es una parte clave del simulador, ya que se encarga de configurar el solucionador que se usará para resolver las ecuaciones de uno o más modelos y de los intercambios que los conectan.</p>
+<p>En términos simples en esta componente se definen:</p>
+<ul>
+<li>el tipo de solucionador numérico que se usará (ej. Newton-Raphson, métodos iterativos lineales (CG o BiCGSTAB),</li>
+<li>los criterios de convergencia (número máximo de iteraciones, tolerancias, etc.),</li>
+<li>la asociación entre modelos y la solución numérica (por ejemplo, un modelo de flujo puede estar vinculado con una o varias soluciones numéricas en caso de que haya múltiples modelos o dominios acoplados).</li>
+</ul>
+<p>El modelo numérico de GWF formula un sistema lineal de ecuaciones de la forma:</p>
+<p><span class="math display">\[
+\mathbf{A} \mathbf{x} = \mathbf{b}
+\]</span></p>
+<p>donde <span class="math inline">\(\mathbf{A}\)</span> es la matriz de coeficientes, <span class="math inline">\(\mathbf{x}\)</span> es el vector de variables dependientes (la carga hidráulica, por ejemplo) y <span class="math inline">\(\mathbf{b}\)</span> es el lado derecho del sistema con valores conocidos (ej. las condiciones iniciales y de frontera).</p>
+<p><img src="../figures/modflow02.png" width="450px" hspace="5" vspace="5" style="float: left;"></p>
+<ul>
+<li><p>En la figura de la izquierda, tomada de [1], se muestra un ejemplo ilustrativo de una matriz para tres modelos numéricos, con sus respectivos intercambios que los conectan entre sí, que se resuelve por un solo componente de tipo <em>Numerical Solution</em>.</p></li>
+<li><p>La componente <em>Numerical Solution</em> resuelve el sistema de ecuaciones para uno o más modelos usando métodos iterativos.</p></li>
+<li><p>Estos métodos son capaces de manejar matrices dispersas, simétricas y no simétricas, de tal manera que es posible resolver problemas en mallas no estructuradas, formulaciones tipo Newton-Raphson, flujo de agua anisotrópico, transporte de solutos dispersivo, entre otros.</p></li>
+</ul>
+<p><strong>Jerarquía de clases de los solucionadores numéricos.</strong></p>
+<p><img src="../figures/modflow_class_1.png" width="200px" hspace="5" vspace="5" style="float: left;"></p>
+<ul>
+<li><p><em>BaseSolutionType</em> es la clase base general para cualquier tipo de solución en MODFLOW 6; de esta superclase deben heredar todas las clases para calcular las soluciones numéricas.</p></li>
+<li><p><em>NumericalSolutionType</em> Es una especialización de <em>BaseSolutionType</em>, que está orientada exclusivamente a métodos numéricos iterativos. Está diseñada para resolver uno o más modelos numéricos.</p></li>
+<li><p><em>IterativeModelSolutionType</em> (IMS) es una implementación concreta de la clase <em>NumericalSolutionType</em> y se encarga de resolver uno o varios modelos acoplados. En una simulación se crean objetos de esta clase para calcular la solución numérica.</p></li>
+</ul>
+<p><img src="../figures/modflow03.png" width="350px" hspace="5" vspace="5" style="float: right;"></p>
+<ul>
+<li><p>Los procedimientos primarios de la clase <em>BaseSolutionType</em> se muestran en la figura de la derecha (tomada de [1]).</p></li>
+<li><p>Observése que el programa principal ejecuta procedimientos específicos de <em>BaseSolutionType</em>.</p></li>
+<li><p>Obsérvese también que en este caso no se ejecuta el procedimiento TU, pues esta es tarea del <em>TimingModule</em>.</p></li>
+<li><p>En el procedimiento CA es donde se implementan los métodos iterativos para resolver el sistema de ecuaciones generado por los modelos e intercambios que se agreguen a la simulación.</p></li>
+<li><p>Cuando el sistema es no lineal, se resuelve una forma linealizada del sistema de manera iterativa usando métodos iterativos y precondicionados.</p></li>
+<li><p>El solucionador descrito en [3] ha sido extendido en MODFLOW 6 para incluir los aceleradores lineales CG, BiCGSTAB e ILU.</p></li>
+<li><p>La naturaleza no lineal de los sistemas de ecuaciones, se gestiona con los métodos <em>backtracking</em>, <em>pseudo-transient continuation</em>, <em>under-relaxation methods</em> y <em>Newton Dampening</em>.</p></li>
+</ul>
+<p>Las siguientes figuras muestran diagramas de flujo de los métodos lineales y no lineales implementados en el procedimiento CA.</p>
+<p><img src="../figures/modflow03_2.png" width="250px" hspace="5" vspace="5" style="float: left;"> <img src="../figures/modflow03_1.png" width="450px" hspace="5" vspace="5" style="float: left;"></p>
+</section>
+<section id="los-modelos." class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="los-modelos."><span class="header-section-number">4.4</span> Los modelos.</h2>
+<p><strong>Jerarquía de clases de los modelos.</strong></p>
+<p><img src="../figures/modflow_class_2.png" width="200px" hspace="5" vspace="5" style="float: left;"></p>
+<ul>
+<li><p>Todos los modelos deben ser subclases de la clase principal <em>BaseModelType</em>.</p></li>
+<li><p>Un modelo numérico está definido por la clase <em>NumericalModelType</em> y es un tipo especial de un modelo diseñado para colaborar con la clase <em>NumericalSolutionType</em>.</p></li>
+<li><p>El modelo GWF está definido en la clase <em>GwfModelType</em> que es una subclase de la clase <em>NumericalModelType</em>.</p></li>
+</ul>
+<p>En MODFLOW 6 un modelo es una componente principal de la simulación y representa un proceso hidrológico (flujo subterráneo, flujo laminar o turbulento en conductos, flujo superficial, transporte de calor o de soluto, entre otros).</p>
+<p><img src="../figures/modflow04.png" width="350px" hspace="5" vspace="5" style="float: left;"></p>
+<ul>
+<li><p>Los procedimientos que se ejecutan de <em>BaseModelType</em> , desde el programa principal, son los que se muestran en la figura de la izquierda (tomada de [1]).</p></li>
+<li><p>Estos métodos o procedimientos, generalmente están vacíos (son abstractos en términos de la POO) y pueden ser implementados por métodos que están definidos en las subclases de <em>BaseModelType</em> (sobrecarga).</p></li>
+<li><p>Obsérvese que en este caso no se ejecutan los procedimientos TU ni CA, pues ellos están definidos en otras componentes de la simulación.</p></li>
+<li><p>Esta construcción hace más fácil la adaptación y modificación de nuevos modelos.</p></li>
+</ul>
+<section id="modelos-numéricos." class="level3" data-number="4.4.1">
+<h3 data-number="4.4.1" class="anchored" data-anchor-id="modelos-numéricos."><span class="header-section-number">4.4.1</span> Modelos numéricos.</h3>
+<p>En la figura se muestran los procedimientos primarios que se ejecutan de las clases <em>NumericalModelType</em> y <em>NumericalSolutionType</em>.</p>
+<p><img src="../figures/modflow05.png" width="475px" hspace="5" vspace="5" style="float: left;"></p>
+<ul>
+<li>CR: Crea el modelo numérico y los paquetes requeridos.</li>
+<li>DF: Define el modelo numérico leyendo la información del tamaño del modelo.</li>
+<li>AC: Adiciona las conexiones del modelo a Numerical Solution reservando espacios dentro de la matriz de coeficientes.</li>
+<li>MC: Crea un arreglo de índices que mapea las conexiones del modelo dentro del sistema de ecuaciones.</li>
+<li>AR: Asigna memoria para los arreglos del modelo y lee información que será constante durante toda la simulación.</li>
+<li>RP: Lee información del modelo de archivos, conforme es requerida, para actualizar los estreses hidrológicos u otras entradas que varían con el tiempo.</li>
+<li>AD: Avanza el modelo al siguiente paso en el tiempo, típicamente almacenando el valor anterior de las variables dependientes.</li>
+<li>CF: Calcula y actualiza los coeficientes que dependen de los resultados de la última iteración.</li>
+<li>FC: Calcula y agrega los términos del modelo a la matriz de coeficientes y al RHS de Numerical Solution.</li>
+<li>NR: Calcula y agrega los términos del método de Newton-Raphson del modelo a la matriz de coeficientes y al RHS de Numerical Solution.</li>
+<li>CC: Realiza una revisión de la convergencia en las variables dependientes que no son parte del modelo numérico.</li>
+<li>ND: Ajusta los valores de las variables dependientes, lo que puede mejorar la convergencia para modelos que usan la formulación de Newton-Raphson.</li>
+<li>BD: Calcula el balance con base en la solución actualizada para la variable dependiente.</li>
+<li>OT: Escribe los resultados de la simulación en archivos para cada paso de tiempo o como sea requerido.</li>
+<li>FP: Escribe mensajes de terminación y cierra todos los archivos.</li>
+<li>DA: Desaloja toda la memoria.</li>
+</ul>
+</section>
+<section id="groundwater-flow-model-gwf" class="level3" data-number="4.4.2">
+<h3 data-number="4.4.2" class="anchored" data-anchor-id="groundwater-flow-model-gwf"><span class="header-section-number">4.4.2</span> Groundwater Flow Model (GWF)</h3>
+<p>El modelo GWF es un tipo específico de un modelo numérico y está definido en la clase <em>GwfModelType</em> la cual está diseñada para colaborar con la clase <em>IterativeModelSolutionType</em>. La figura muestra un diagrama de flujo donde se muestran los procedimientos primarios que son ejecutados de ambas clases, veáse [4].</p>
+<p><img src="../figures/modflow06.png" width="500px" hspace="5" vspace="5" style="float: right;"></p>
+<ul>
+<li>CR: crea un objeto del modelo GWF con el nombre especificado y es almacenado en una lista de modelos. También crea objetos de todos los paquetes asociados a la simulación, además asigna valores a algunos parámetros del modelo.</li>
+<li>DF: abre archivos, lee la información acerca del tamaño del modelo, la conectividad de las celdas de la malla y crea los objetos de los paquetes que definen las condiciones de frontera.</li>
+<li>AC: informa al solucionador IMS sobre el número total de celdas del modelo GWF y cómo están conectadas entre ellas; esta información es usada por IMS para configurar el tamaño y patrón de conectividad de la matriz del sistema de ecuaciones.</li>
+<li>MC: este procedimiento se ejecuta después de que el patrón de conectividad ha sido determinado para IMS. Se crea un arreglo que mapea la posición de las celdas del modelo GWF con sus conecciones dentro del sistema de ecuaciones. Esta información es usada por GWF que son parte de los procedimientos que agregan términos al sistema de ecuaciones.</li>
+<li>AR: se determinan algunos parámetros hidrológicas y se reserva memoria para los componentes de la simulación que no fueron definidas por el procedimiento DF. También se leen los datos que se mantienen constantes de un periodo de estrés a otro. Estos datos incluyen: parte de la información de las fronteras, cargas hidráulicas iniciales y propiedades hidráulicas del acuífero. Se realizan algunos cálculos preliminares para preparar los datos para un procesamiento posterior.</li>
+<li>RP: se ejecuta al inicio de cada paso de tiempo, pero solamente lee y procesa bloques de información si es el primer paso de tiempo del periodo de estress. Esta información incluye razones de bombeo y áreas de recarga, por ejemplo.</li>
+<li>AD: inicializa la carga, realiza realiza sustitución de series de tiempo y ejecuta los procedimientos de los paquetes de fronteras individuales. También realiza otros procesamientos que deben ser efectuados al principio de cada paso de tiempo.</li>
+<li>CF: calcula términos que serán requeridos en otros procedimientos. También rehumedece las celdas, si es necesario, y vuelve inactivas las celdas secas.</li>
+<li>FC: adiciona los coeficients a la matriz <span class="math inline">\(A\)</span> y al vector de lado derecho <span class="math inline">\(b\)</span>.</li>
+<li>NR: adiciona los términos de Newton-Raphson a la matriz <span class="math inline">\(A\)</span> y al vector de lado derecho <span class="math inline">\(b\)</span>. Solo se invoca cuando el método de Newton-Raphson es usado por el modelo GWF.</li>
+<li>CC: se realiza una verificación de la convergencia de variables que no son parte de la solución numérica, particularmente sobre paquetes avanzados que trabajan sobre la frontera.</li>
+<li>ND: se ejecuta el procedimiento Newton Dampening para amortiguar cambios de cargar grandes e irreales. Específicamente, si la carga simulada de una celda está por debajo del límite inferior del modelo, esta se ajusta hacia arriba, hacia el límite inferior del modelo.</li>
+<li>BD: calcula los términos del balance de flujo para el modelo GWF y los paquetes de frontera.</li>
+<li>FP: escribe la salida final del modelo y realiza algunas tareas de procesamiento final.</li>
+<li>DA: Desaloja toda la memoria utilizada por el modelo.</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="paquetes." class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Paquetes.</h1>
+<p>En la sección anterior se describió que el modelo GWF opera ejecutando una secuencia de procedimientos primarios, y estos son fundamentales desde el punto de vista de un programa de cómputo. No obstante, los usuarios prefieren pensar en las caracterísiticas de un programa en términos de sus capacidades para resolver problemas hidrológicos.</p>
+<p>Para este propósito, el modelo GWF se divide en paquetes. Un paquete es la parte del modelo que se ocupa de un único aspecto de la simulación. Por ejemplo los paquetes <em>River</em> y <em>Well</em> se encargan de todos los aspectos de los ríos y de los pozos, respectivamente.</p>
+<p>La siguiente figura, tomada de [4], muestra un ejemplo de configuración de GWF con varios paquetes.</p>
+<p><img src="../figures/gwf_mf6.png" width="450px" hspace="5" vspace="5"></p>
+<p>Existen tres tipos de paquetes hidrológicos y un paquete de salida. La tabla siguiente, tomada de [4], muestra la lista completa de paquetes para GWF.</p>
+<p><img src="../figures/gwf_mf6_pack.png" width="500px" hspace="5" vspace="5"></p>
+<ul>
+<li><p><strong>Hydrologic/Internal</strong>. Paquetes para simular el flujo entre celdas adyacentes o para manejar cambios de almacenamiento para todas las celdas del modelo. En general se usan para calcular los términos necesarios para resolver la ecuación de flujo de agua subterránea para cada celda del modelo o para almacenar la información necesaria para calcular estos términos.</p>
+<ul>
+<li><strong>DIS</strong>, <strong>DISV</strong>, <strong>DISU</strong>. Discretización espacial. Paquete para calcular o gestionar áreas y volúmenes de cada celda de la malla, así como las propiedades geométricas de las conexiones entre ellas.</li>
+<li><strong>IC</strong> (Initial Conditions). Condiciones iniciales. Paquete para leer los valores iniciales de la carga hidráulica para el modelo GWF.</li>
+<li><strong>NPF</strong> (Node-Property Flow). Propiedades de flujo de los nodos. Paquete para calcular la conductancia hidráulica entre celdas adyacentes, gestiona la humectación y el secado de las celdas y calcula el flujo entre celdas adyacentes.</li>
+<li><strong>HFB</strong> (Horizontal Flow Barrier). Barrera de flujo horizontal. Paquete complementario que, en conjunto con el paquete NPF, permite modificar las conductancias para simular una barrera horizontal entre nodos adyacentes.</li>
+<li><strong>GNC</strong> (Ghost Node Correction). Corrección de nodos fantasma. Paquete complementario que, en conjunto con el paquete NPF, permite mejorar la precisión de los cálculos de flujo para algunos tipos de malla.</li>
+<li><strong>STO</strong> (Storage). Almacenamiento. Paquete para calcular el cambio en el volumen de agua que ocurre durante un paso de tiempo.</li>
+</ul></li>
+<li><p><strong>Hydrologic/Stress</strong>. Paquetes que formulan los coeficientes que describen flujos externos o en la frontera del dominio, como ríos, pozos y recarga. Por ejemplo, el paquete <em>River</em> calcula los coeficientes que describen el flujo entre una celda y un río superficial. Los paquetes de este tipo son siete: <strong>CHD</strong>, <strong>WEL</strong>, <strong>RCH</strong>, <strong>RIV</strong>, <strong>GHB</strong>, <strong>DRN</strong> y <strong>EVT</strong>. Estos paquetes proveen la funcionalidad que ha estado presente en versiones previas de MODFLOW.</p></li>
+<li><p><strong>Hydrologic/Advanced Stress</strong>. Paquetes para simular estreses más avanzados. Estos paquetes incluyen <strong>MAW</strong>, <strong>SFR</strong>, <strong>UZF</strong> y <strong>MVR</strong>.</p></li>
+<li><p><strong>Output</strong>. Paquetes que no entran en la categoría de paquetes hidrológicos:</p>
+<ul>
+<li><strong>OBS</strong> (Observation). Paquete para la observación e impresión de la salida.</li>
+<li><strong>OC</strong> (Output Control). Paquete para el guardado de los resultados en archivos.</li>
+</ul></li>
+</ul>
+</section>
+<section id="referencias" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Referencias</h1>
+<p>[1] Hughes, J.D., Langevin, C.D., and Banta, E.R., 2017, Documentation for the MODFLOW 6 framework: U.S. Geological Survey Techniques and Methods, book 6, chap.&nbsp;A57, 40 p.&nbsp;https://doi.org/10.3133/tm6A57.</p>
+<p>[2] Langevin, C. D., Hughes, J. D., Provost, A. M., Russcher, M. J., &amp; Panday, S. (2023). MODFLOW as a configurable Multi‐Model Hydrologic Simulator. Ground Water. https://doi.org/10.1111/gwat.13351.</p>
+<p>[3] Hughes, J.D., and White, J.T., 2013, Use of general purpose graphics processing units with MODFLOW: Groundwater, v. 51, no. 6, p.&nbsp;833–846, accessed June 27, 2017. https://doi.org/10.1111/gwat.12004.</p>
+<p>[4] Langevin, C.D., Hughes, J.D., Provost, A.M., Banta, E.R., Niswonger, R.G., and Panday, Sorab, 2017, Documentation for the MODFLOW 6 Groundwater Flow (GWF) Model: U.S. Geological Survey Techniques and Methods, book 6, chap.&nbsp;A55, 197 p., accessed August 4, 2017. https://doi.org/10.3133/tm6A55.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./index.html" class="pagination-link" aria-label="Introducción">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Introducción</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./01_MF6_GWF_init.html" class="pagination-link" aria-label="MODFLOW 6: inicializando una simulación.">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">MODFLOW 6: inicializando una simulación.</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

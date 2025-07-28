@@ -1,0 +1,936 @@
+---
+title: "Modelos Numéricos y Computacionales"
+author: "Luis Miguel de la Cruz Salas"
+institute: "Depto. de Recursos Naturales, IGEF-UNAM"
+date: "9/09/24"
+format:
+  revealjs:
+    incremental: false
+    theme: default
+    code-block-height: 350px
+    preview-links: true
+    transition: none
+    slide-number: c/t
+    show-slide-number: all
+    css: math.scss
+---
+
+# WMA
+
+## WMA for reactive transport. {.scrollable}
+
+:::: {.columns}
+
+::: {.column}
+![](./figuras/WMA_flowchart.png){fig-align="center"  fig-alt="applied WMA formulation to reactive transport." width=50% .lightbox}
+:::
+
+::: {.column}
+```{mermaid}
+%%| fig-width: 10.5
+flowchart TD
+  A[Start time step simulation] --> A1[GWF-MODFLOW 6]
+  A1 --> B{λ computed}
+  B --> C[Calculate λ between Water zones targets]
+  C & B --> E[texto]
+  E --> F[mas texto]
+  F --> G{otra decision}
+  G --> H{otra decision}
+  H --> I[End time step simulation]
+```
+:::
+
+
+
+:::: 
+
+
+# Solución del flujo.
+
+## Ecuación de flujo.{.scrollable}
+
+* Flujo transitorio de agua subterránea en un medio poroso heterogéneo y anisotrópico, con los ejes principales de $K$ alineados con las direcciones de las coordenadas [^longnote].
+
+[^longnote]: 
+    [Langevin, C.D., Hughes, J.D., Provost, A.M., Banta, E.R., Niswonger, R.G., and Panday, Sorab, 2017, Documentation for the MODFLOW 6 Groundwater Flow (GWF) Model: U.S. Geological Survey Techniques and Methods, book 6, chap. A55, 197 p., accessed August 4, 2017](https://doi.org/10.3133/tm6A55).
+
+$$
+\frac{\partial}{\partial x}\left(K_{xx} \frac{\partial h}{\partial x} \right) +
+\frac{\partial}{\partial y}\left(K_{yy} \frac{\partial h}{\partial y} \right) +
+\frac{\partial}{\partial z}\left(K_{zz} \frac{\partial h}{\partial z} \right) +
+Q^\prime_s = SS \frac{\partial h}{\partial t} \tag{1}
+$$
+
+![](./figuras/mesh_3D_mf6.png){fig-align="center"  fig-alt="Malla 3D" width=50% .lightbox}
+
+## Condiciones iniciales y de frontera. {.scrollable}
+
+:::{.incremental}
+
+* La ecuación $(1)$, junto con **la especificación de las condiciones de caudal y altura en los límites de un sistema acuífero** y **la especificación de las condiciones iniciales de altura**, constituye una representación matemática de un sistema de flujo de agua subterránea. 
+
+* Una solución de la ecuación $(1)$, en un sentido analítico, es una expresión algebraica que da $h(x, y, z, t)$ de manera que, cuando las derivadas de $h$ con respecto al espacio y al tiempo se sustituyen en la ecuación $(1)$, se satisfacen la ecuación y sus condiciones iniciales y de contorno. 
+:::
+
+## Ley de Darcy
+
+El movimiento tridimensional del agua subterránea de densidad constante a través de un medio poroso se describe mediante la Ley de Darcy:
+
+$$
+\begin{eqnarray}
+\mathbf{q} & = & - \mathbf{K} \nabla h \\
+\mathbf{q} & = & 
+-\left(
+\begin{array}{ccc}
+K_{xx} & 0 & 0 \\
+0 & K_{yy}& 0 \\
+0 & 0 & K_{zz}
+\end{array}
+\right)
+\left(
+\begin{array}{ccc}
+\frac{\partial h}{\partial x} \\
+\frac{\partial h}{\partial y} \tag{2}\\
+\frac{\partial h}{\partial z} 
+\end{array}
+\right)
+\end{eqnarray}
+$$
+
+
+## Nomenclatura. {.scrollable}
+
+
+|Símbolo| Descripción| Unidades
+|:-:|---|:-:|
+| $h$ | Carga hidráulica | L |
+| $\mathbf{q}$ | Vector de descarga específica | L/T|
+| $\mathbf{K}$ | Tensor de conductividad hidráulica | L/T |
+| $K_{xx}$ | Conductividad hidráulica a lo largo del eje $x$. Puede ser función del espacio ($K_{xx} = K_{xx}(x,y,z)$). | L/T |
+| $K_{yy}$ | Conductividad hidráulica a lo largo del eje $y$. Puede ser función del espacio ($K_{yy} = K_{yy}(x,y,z)$). | L/T |
+| $K_{zz}$ | Conductividad hidráulica a lo largo del eje $z$. Puede ser función del espacio ($K_{zz} = K_{zz}(x,y,z)$). | L/T |
+| $x, y, z$ | Coordenadas cartesianas | L |
+| $Q^\prime_s$ | Flujo volumétrico por unidad de volumen. Es **negativo** para el flujo que **sale** del sistema de agua subterránea; es **positivo** para el flujo que **entra** al sistema. Puede ser función del espacio y del tiempo ($Q^\prime_s = Q^\prime_s(x,y,z,t)$). | T$^{-1}$ |
+| $SS$ | Almacenamiento específico. Puede ser función del espacio ($SS = SS(x,y,z)$). | L$^{-1}$|
+| $t$ | Tiempo. | T |
+||||
+
+## MODFLOW 6: GWF. {.scrollable}
+
+Escrito en FORTRAN, Orientado a Objetos. [Sitio web](https://www.usgs.gov/software/modflow-6-usgs-modular-hydrologic-model).
+
+**Componentes.**
+
+![](./figuras/components_mf6.png){fig-align="center" fig-alt="Componentes de MODFLOW 6" width=50% .lightbox}
+
+**Paquetes.**
+
+![](./figuras/gwf_mf6.png){fig-align="center" fig-alt="Paquetes de MODFLOW 6" width=50% .lightbox}
+
+## Flopy.  {.scrollable}
+
+Conjunto de módulos para ejecutar MODFLOW, MT3D, SEAWAT y otros programas relacionados desde Python. 
+
+* Respositorio: [https://github.com/modflowpy/flopy](https://github.com/modflowpy/flopy) 
+
+* [MODFLOW 6. Example Problems.](https://modflow6-examples.readthedocs.io/en/latest/)
+
+## Cálculo de carga hidráulica y otros.{.scrollable}
+Repositorio: [https://github.com/luiggix/xmf6](https://github.com/luiggix/xmf6)
+
+::: {.panel-tabset}
+### Input
+
+* Bibliotecas
+
+```{.python}
+# Bibliotecas del sistema.
+import os, sys
+
+# Temporal, para agregar las rutas correctas
+%run ../../src/xmf6/ruta_temporal.py
+if not(src_path in sys.path[0]):
+    sys.path.insert(0, os.path.abspath(a_path + src_path)) 
+
+# Bibliotecas numéricas, de graficación y flopy
+import numpy as np
+import matplotlib.pyplot as plt
+import flopy
+
+# Módulo creado para este proyecto.
+import xmf6
+
+# Función que genera GWF usando flopy
+from flow_1D import build_gwf_1D
+```
+
+* Datos de entrada
+```{.python}
+#----- Parámetros del sistema y de la simulación
+os_par = dict(
+    ws = os.getcwd() + '/output', # Ruta de donde estamos actualmente
+    mf6_exe = '/home/jovyan/mf6/bin/mf6', # Ejecutable de MODFLOW 6
+    flow_name = 'flow', # Nombre de la simulación para flujo
+)
+
+xmf6.nice_print(os_par, 'MODFLOW 6 environment')
+
+#----- Parámetros para archivos de salida                   
+of_par = dict(
+    head_file = f"{os_par['flow_name']}.hds",
+    fbudget_file = f"{os_par['flow_name']}.bud",
+)
+
+xmf6.nice_print(of_par, 'Output files')
+
+#----- Parámetros para la discretización espacial
+mesh = xmf6.MeshDis(
+    nrow = 1,    # Number of rows
+    ncol = 120,  # Number of columns
+    nlay = 1,    # Number of layers
+    row_length = 12.0,    # Length of system ($cm$)
+    column_length = 0.1,  # Length of system ($cm$)
+    top = 1.0,   # Top of the model ($cm$)
+    bottom = 0,  # Layer bottom elevation ($cm$)
+)
+
+xmf6.nice_print(mesh, 'Space discretization')
+
+# Parámetros para el paso de tiempo
+tdis = xmf6.TDis(
+    perioddata = ((120, 240, 1.0),) # PERLEN, NSTP, TSMULT
+)
+
+xmf6.nice_print(tdis, 'Time discretization')
+
+# Parámetros para las unidades
+ml_units = {
+    "time": "seconds",
+    "length": "centimeters"
+}
+
+xmf6.nice_print(ml_units, 'Units')
+
+# Parámetros físicos del problema
+ph_par = dict(
+    specific_discharge = 0.1,  # Specific discharge ($cm s^{-1}$)
+    hydraulic_conductivity = 0.01,  # Hydraulic conductivity ($cm s^{-1}$)
+    source_concentration = 1.0,  # Source concentration (unitless)
+)
+
+xmf6.nice_print(ph_par, 'Physical parameters')
+```
+
+* Impresión de datos de entrada.
+
+```
+MODFLOW 6 environment
+------------------------------
+                  ws = /home/jovyan/xmf6/examples/01_flow_trans_1D/output
+             mf6_exe = /home/jovyan/mf6/bin/mf6
+           flow_name = flow      
+
+Output files
+------------------------------
+           head_file = flow.hds  
+        fbudget_file = flow.bud  
+
+Space discretization
+------------------------------
+NX =          120 (ncol)
+NY =            1 (nrow)
+NZ =            1 (nlay)
+LX =       12.000 (row)
+LY =        0.100 (col)
+LZ =        1.000 (lay)
+DX =  1.00000e-01 (delr)
+DY =  1.00000e-01 (delc)
+TOP=        1.000 (top)
+BOT=        0.000 (bottom)
+DZ =  1.00000e+00 (top-botm)
+0.5
+
+Time discretization
+------------------------------
+      NPER = 1       
+TOTAL TIME = 120.00
+
+PER     PERLEN     NSTP     TSMULT        Dt1
+  1     120.00      240       1.00   5.00e-01
+
+Units
+------------------------------
+                time = seconds   
+              length = centimeters
+
+Physical parameters
+------------------------------
+  specific_discharge = 0.1       
+hydraulic_conductivity = 0.01      
+source_concentration = 1.0    
+```
+
+### `sim` y `gwf`
+
+* Construcción de los objetos `sim_f` y `gwf` para la simulación.
+
+```{.python}
+# Construcción del Modelo GWF
+sim_f, gwf = build_gwf_1D(mesh, tdis, ph_par, ml_units, os_par, of_par)
+```
+
+* Función `build_gwf_1D()`:
+```{.python}
+import flopy
+
+def build_gwf_1D(mesh, tdis, ph_par, ml_units, os_par, oc_par):
+    
+    """
+    Función que crea una simulación para flujo usando GWF
+
+    Parameters
+    ----------
+    mesh: MeshDis
+    Objeto que gestiona atributos y métodos de una malla rectangular
+    estructurada y uniforme.
+
+    tdis: TDis
+    Objeto que gestiona atributos del tiempo.
+
+    ph_par: dict
+    Diccionario con los parámetros físicos del problema.
+
+    ml_units: dict
+    Unidades para los parámetros del problema.
+
+    os_par: dict
+    Parámetros para ejecución de MODFLOW 6.
+    
+    oc_par: dict
+    Parámetros para los archivos de salida.
+
+    Returns
+    -------
+    sim: MFSimulation
+    Objeto de la simulación.
+
+    gwf:
+    Objeto del modelo GWF.
+    """
+
+    # Creamos la simulación
+    sim = flopy.mf6.MFSimulation(
+        sim_name=os_par["flow_name"], 
+        sim_ws=os_par["ws"], 
+        exe_name=os_par["mf6_exe"]
+    )
+
+    # Definimos la componente para el tiempo
+    flopy.mf6.ModflowTdis(
+        sim, 
+        nper=tdis.nper(), 
+        perioddata=tdis.perioddata(), 
+        time_units=ml_units["time"]
+    )
+
+    # Definimos la componente para la solución numérica
+    flopy.mf6.ModflowIms(
+        sim
+    )
+
+    # Definimos el modelo GWF
+    gwf = flopy.mf6.ModflowGwf(
+        sim,
+        modelname=os_par["flow_name"],
+        save_flows=True
+    )
+    
+    # Paquete para discretización espacial
+    flopy.mf6.ModflowGwfdis(
+        gwf,
+        length_units=ml_units["length"],
+        nlay=mesh.nlay,
+        nrow=mesh.nrow,
+        ncol=mesh.ncol,
+        delr=mesh.delr,
+        delc=mesh.delc,
+        top=mesh.top,
+        botm=mesh.bottom,
+    )
+
+    # Paquete para las condiciones iniciales
+    flopy.mf6.ModflowGwfic(
+        gwf, 
+        strt=1.0
+    )
+
+    # Paquete para las propiedades de flujo en los nodos
+    flopy.mf6.ModflowGwfnpf(
+        gwf,
+        save_specific_discharge=True,
+        save_saturation=True,
+        icelltype=0,
+        k=ph_par["hydraulic_conductivity"],
+    )
+
+    # Paquete CHD
+    flopy.mf6.ModflowGwfchd(
+        gwf, 
+        stress_period_data=[[(0, 0, mesh.ncol - 1), 1.0]]
+    ) 
+
+    # Paquete de pozos
+    q = ph_par["specific_discharge"] * mesh.delc * mesh.delr * mesh.top
+    aux = ph_par["source_concentration"]
+    flopy.mf6.ModflowGwfwel(
+        gwf,
+        stress_period_data=[[(0, 0, 0), q, aux,]],
+        pname="WEL-1",
+        auxiliary=["CONCENTRATION"],
+    )
+
+    # Paquete para la salida
+    flopy.mf6.ModflowGwfoc(
+        gwf,
+        head_filerecord=oc_par["head_file"],
+        budget_filerecord=oc_par["fbudget_file"],
+        saverecord=[("HEAD", "ALL"), ("BUDGET", "ALL")],
+    )
+
+    return sim, gwf
+```
+
+* Generación de los archivos de entrada para la simulación.
+```{.python}
+sim_f.write_simulation(silent=True)
+```
+
+* Archivos generados: 
+    - `flow.chd`:
+    - `flow.dis`:
+    - `flow.ic`:
+    - `flow.ims`:
+    - `flow.nam`:
+    - `flow.npf`:
+    - `flow.oc`:
+    - `flow.tdis`:
+    - `flow.wel`:
+    - `mfsim.nam`
+
+### Run
+
+* Ejecución de la simulación:
+
+```{.python}
+sim_f.run_simulation(silent=True)
+```
+
+* Archivos de salida:
+    - `flow.bud`:
+    - `flow.dis`: 
+    - `flow.dis.grb`:
+    - `flow.hds`:
+    - `flow.lst`:
+    - `mfsim.lst`:
+
+### Post
+
+* clase `OFiles`.
+
+```{.python}
+class OFiles():
+    def __init__(self, os_par, oc_par):
+        self.os_par = os_par
+        self.oc_par = oc_par
+
+    def get_head(self):
+        return flopy.utils.HeadFile(
+            os.path.join(self.os_par["ws"], 
+                         self.oc_par["head_file"])).get_data()
+
+    def get_bud(self):    
+        return flopy.utils.CellBudgetFile(
+            os.path.join(self.os_par["ws"], 
+                         self.oc_par["fbudget_file"]),
+            precision='double')
+
+    def get_spdis(self):
+        bud = self.get_bud()
+        return bud.get_data(text='DATA-SPDIS')[0]
+
+    def get_q(self, gwf):
+        spdis = self.get_spdis()
+        return flopy.utils.postprocessing.get_specific_discharge(spdis, gwf)
+
+    def get_concentration(self, sim, t):
+        ucnobj_mf6 = sim.transport.output.concentration()
+        simconc = ucnobj_mf6.get_data(totim=t).flatten()
+        return simconc
+```
+
+* Recuperación de $h$ y $q$.
+
+```
+of = xmf6.OFiles(os_par, of_par)
+qx, _, _ = of.get_q(gwf)
+head = of.get_head()
+xi = mesh.get_coords('X')
+```
+
+* Arreglos `xi`, `head`, `qx`:
+
+```{.python}
+print(f'Coordenadas: {xi.shape} \n {xi}')
+print(f'Carga hidráulica: {head.shape} \n {head}')
+print(f'q ...: {qx.shape} \n {qx}')
+```
+
+```
+Coordenadas: (120,) 
+ [ 0.05  0.15  0.25  0.35  0.45  0.55  0.65  0.75  0.85  0.95  1.05  1.15
+  1.25  1.35  1.45  1.55  1.65  1.75  1.85  1.95  2.05  2.15  2.25  2.35
+  2.45  2.55  2.65  2.75  2.85  2.95  3.05  3.15  3.25  3.35  3.45  3.55
+  3.65  3.75  3.85  3.95  4.05  4.15  4.25  4.35  4.45  4.55  4.65  4.75
+  4.85  4.95  5.05  5.15  5.25  5.35  5.45  5.55  5.65  5.75  5.85  5.95
+  6.05  6.15  6.25  6.35  6.45  6.55  6.65  6.75  6.85  6.95  7.05  7.15
+  7.25  7.35  7.45  7.55  7.65  7.75  7.85  7.95  8.05  8.15  8.25  8.35
+  8.45  8.55  8.65  8.75  8.85  8.95  9.05  9.15  9.25  9.35  9.45  9.55
+  9.65  9.75  9.85  9.95 10.05 10.15 10.25 10.35 10.45 10.55 10.65 10.75
+ 10.85 10.95 11.05 11.15 11.25 11.35 11.45 11.55 11.65 11.75 11.85 11.95]
+
+Carga hidráulica: (1, 1, 120) 
+ [[[12.9 12.8 12.7 12.6 12.5 12.4 12.3 12.2 12.1 12.  11.9 11.8 11.7 11.6
+   11.5 11.4 11.3 11.2 11.1 11.  10.9 10.8 10.7 10.6 10.5 10.4 10.3 10.2
+   10.1 10.   9.9  9.8  9.7  9.6  9.5  9.4  9.3  9.2  9.1  9.   8.9  8.8
+    8.7  8.6  8.5  8.4  8.3  8.2  8.1  8.   7.9  7.8  7.7  7.6  7.5  7.4
+    7.3  7.2  7.1  7.   6.9  6.8  6.7  6.6  6.5  6.4  6.3  6.2  6.1  6.
+    5.9  5.8  5.7  5.6  5.5  5.4  5.3  5.2  5.1  5.   4.9  4.8  4.7  4.6
+    4.5  4.4  4.3  4.2  4.1  4.   3.9  3.8  3.7  3.6  3.5  3.4  3.3  3.2
+    3.1  3.   2.9  2.8  2.7  2.6  2.5  2.4  2.3  2.2  2.1  2.   1.9  1.8
+    1.7  1.6  1.5  1.4  1.3  1.2  1.1  1. ]]]
+
+q ...: (1, 1, 120) 
+ [[[0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+   0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+   0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+   0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+   0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+   0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+   0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+   0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+   0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01]]]
+```
+
+* Graficación de $h$.
+
+```{.python}
+f, (ax1, ax2) = plt.subplots(2, 1, figsize=(6,8), sharex=True)
+iskip = 3
+
+##### Carga hidraúlica #####
+xmf6.plot(ax1, xi[::iskip], head[0, 0][::iskip],
+            marker="o", ls ="-", 
+            mec="blue", mfc="none", 
+            markersize="5", label = 'Head')
+
+ax1.set_xlim(0, 12)
+ax1.set_xticks(ticks=np.linspace(0, mesh.row_length,13))
+ax1.set_ylabel("Head (unitless)")
+ax1.grid(True)
+```
+
+![](./figuras/head.png){fig-align="center" fig-alt="Carga hidráulica" width=50% .lightbox}
+:::
+
+# Transporte: MF6-GWT.
+
+## Ecuación de transporte.{.scrollable}
+
+* Transporte ... [^longnote].
+
+[^longnote]: 
+    [Langevin, C.D., Provost, A.M., Panday, Sorab, and Hughes, J.D., 2022, Documentation for the MODFLOW 6 Groundwater Transport Model: U.S. Geological Survey Techniques and Methods, book 6, chap. A61, 56 p.](https://doi.org/10.3133/tm6A61)
+
+## MODFLOW 6: GWT.{.scrollable}
+
+**Modelos de solución.**
+
+![](./figuras/gwt_mf6.png){fig-align="center" fig-alt="Componentes de MODFLOW 6" width=50% .lightbox}
+
+**Paquetes.**
+
+![](./figuras/gwt_pack_mf6.png){fig-align="center" fig-alt="Paquetes de MODFLOW 6" width=50% .lightbox}
+
+## Cálculo de la concentración y otros.{.scrollable}
+Repositorio: [https://github.com/luiggix/xmf6](https://github.com/luiggix/xmf6)
+
+::: {.panel-tabset}
+### Input
+
+* Bibliotecas
+
+```{.python}
+# Función que genera GWT usando flopy
+from tran_1D import build_gwt_1D
+```
+
+* Datos de entrada
+```{.python}
+# Actualización del diccionario 'os_par'
+os_par['tran_name'] = 'transport' # Nombre de la simulación para transporte
+
+xmf6.nice_print(os_par, 'MODFLOW 6 environment')
+                     
+# Actualización del diccionario 'of_par'
+of_par['concentration_file']=f"{os_par['tran_name']}.ucn"
+of_par['tbudget_file'] = f"{os_par['tran_name']}.bud"
+
+xmf6.nice_print(of_par, 'Output files')
+
+```
+```
+
+MODFLOW 6 environment
+------------------------------
+                  ws = /home/jovyan/xmf6/examples/01_flow_trans_1D/output
+             mf6_exe = /home/jovyan/mf6/bin/mf6
+           flow_name = flow      
+           tran_name = transport 
+
+Output files
+------------------------------
+           head_file = flow.hds  
+        fbudget_file = flow.bud  
+  concentration_file = transport.ucn
+        tbudget_file = transport.bud
+```
+
+* Datos físicos para transporte.
+```{.python}
+long_disp = [0.1, 1.0, 1.0, 1.0]
+reta_fact = [1.0, 1.0, 2.0, 1.0]
+deca_rate = [0.0, 0.0, 0.0, 0.01]
+dir_names = ['p01a','p01b','p01c','p01d']
+
+case = 3 # 0, 1, 2, 3
+dirname = dir_names[case]
+ph_par["porosity"] = 0.1  # Porosity of mobile domain (unitless)
+ph_par["initial_concentration"] = 0.0  # Initial concentration (unitless)
+ph_par["longitudinal_dispersivity"] = long_disp[case] 
+ph_par["retardation_factor"] = reta_fact[case]
+ph_par["decay_rate"] =  deca_rate[case]
+ph_par["dispersion_coefficient"] = ph_par["longitudinal_dispersivity"] * \
+                                   ph_par["specific_discharge"] / ph_par["retardation_factor"]
+xmf6.nice_print(ph_par, 'Physical parameters')
+print("Caso: {}".format(dirname))
+```
+
+```
+
+Physical parameters
+------------------------------
+  specific_discharge = 0.1       
+hydraulic_conductivity = 0.01      
+source_concentration = 1.0       
+            porosity = 0.1       
+initial_concentration = 0.0       
+longitudinal_dispersivity = 1.0       
+  retardation_factor = 1.0       
+          decay_rate = 0.01      
+dispersion_coefficient = 0.1       
+Caso: p01d
+```
+
+### `sim_t` y `gwt`
+
+* Construcción de los objetos `sim_t` y `gwt` para la simulación.
+
+```{.python}
+# Construcción del Modelo GWT
+sim_t, gwt = build_gwt_1D(mesh, tdis, ph_par, ml_units, os_par, of_par)
+```
+
+* Función `build_gwt_1D()`:
+```{.python}
+import os, sys   
+import numpy as np 
+import matplotlib.pyplot as plt 
+import flopy
+
+def get_sorption_dict(retardation_factor, porosity):
+    sorption = None
+    bulk_density = None
+    distcoef = None
+    if retardation_factor > 1.0:
+        sorption = "linear"
+        bulk_density = 1.0
+        distcoef = (retardation_factor - 1.0) * porosity / bulk_density
+    sorption_dict = {
+        "sorption": sorption,
+        "bulk_density": bulk_density,
+        "distcoef": distcoef,
+    }
+    return sorption_dict
+
+def get_decay_dict(decay_rate, sorption=False):
+    first_order_decay = None
+    decay = None
+    decay_sorbed = None
+    if decay_rate != 0.0:
+        first_order_decay = True
+        decay = decay_rate
+        if sorption:
+            decay_sorbed = decay_rate
+    decay_dict = {
+        "first_order_decay": first_order_decay,
+        "decay": decay,
+        "decay_sorbed": decay_sorbed,
+    }
+    return decay_dict
+    
+def build_gwt_1D(mesh, tdis, ph_par, ml_units, os_par, oc_par):
+    """
+    Función que crea una simulación para transport usando GWT
+
+    Parameters
+    ----------
+    mesh: MeshDis
+    Objeto que gestiona atributos y métodos de una malla rectangular
+    estructurada y uniforme.
+
+    tdis: TDis
+    Objeto que gestiona los parámetros del tiempo.
+
+    ph_par: dict
+    Diccionario con los parámetros físicos del problema.
+
+    ml_units: dict
+    Unidades para los parámetros del problema.
+
+    os_par: dict
+    Parámetros para ejecución de MODFLOW 6.
+    
+    oc_par: dict
+    Parámetros para los archivos de salida.
+
+    Returns
+    -------
+    sim: MFSimulation
+    Objeto de la simulación.
+
+    gwf:
+    Objeto del modelo GWF.
+    """
+    # Creamos la simulación
+    sim = flopy.mf6.MFSimulation(
+        sim_name=os_par["tran_name"], 
+        sim_ws=os_par["ws"], 
+        exe_name=os_par["mf6_exe"]
+    )
+
+    # Definimos la componente para el tiempo
+    flopy.mf6.ModflowTdis(
+        sim, 
+        nper=tdis.nper(), 
+        perioddata=tdis.perioddata(), 
+        time_units=ml_units["time"]
+    )
+    
+    # Definimos la componente para la solución numérica
+    flopy.mf6.ModflowIms(
+        sim,
+        linear_acceleration="bicgstab"        
+    )
+
+    # Definimos el modelo GWT
+    gwt = flopy.mf6.ModflowGwt(
+        sim,
+        modelname=os_par["tran_name"],
+        save_flows=True
+    )
+    
+    # Paquete para discretización espacial
+    flopy.mf6.ModflowGwfdis(
+        gwt,
+        length_units=ml_units["length"],
+        nlay=mesh.nlay,
+        nrow=mesh.nrow,
+        ncol=mesh.ncol,
+        delr=mesh.delr,
+        delc=mesh.delc,
+        top=mesh.top,
+        botm=mesh.bottom,
+    )
+
+    # Paquete para las condiciones iniciales
+    flopy.mf6.ModflowGwfic(
+        gwt, 
+        strt=0.0
+    )
+
+    # Paquete para ...
+    flopy.mf6.ModflowGwtmst(
+        gwt,
+        porosity=ph_par["porosity"],
+        **get_sorption_dict(ph_par["retardation_factor"], ph_par["porosity"]),
+        **get_decay_dict(ph_par["decay_rate"], 
+                         ph_par["retardation_factor"] > 1.0),
+    )
+
+    # Paquete para la adveccción
+    flopy.mf6.ModflowGwtadv(
+        gwt, 
+        scheme="TVD"
+    )
+
+    # Paquete para ...
+    flopy.mf6.ModflowGwtdsp(
+        gwt,
+        xt3d_off=True,
+        alh=ph_par["longitudinal_dispersivity"],
+        ath1=ph_par["longitudinal_dispersivity"],
+    )
+
+    # Paquete para ...
+    pd = [ 
+        ("GWFHEAD", oc_par["head_file"], None),
+        ("GWFBUDGET", oc_par["fbudget_file"], None),
+    ] 
+    flopy.mf6.ModflowGwtfmi(
+        gwt, 
+        packagedata=pd
+    )
+
+    # Paquete para ...
+    sourcerecarray = [["WEL-1", "AUX", "CONCENTRATION"]]
+    flopy.mf6.ModflowGwtssm(
+        gwt, 
+        sources=sourcerecarray
+    )
+
+    # Paquete para ...
+    obs_data = {
+        "transporte.obs.csv": [
+            ("X005", "CONCENTRATION", (0, 0, 0)),
+            ("X405", "CONCENTRATION", (0, 0, 40)),
+            ("X1105", "CONCENTRATION", (0, 0, 110)),
+        ],
+    }
+    
+    flopy.mf6.ModflowUtlobs(
+        gwt, 
+        digits=10, 
+        print_input=True, 
+        continuous=obs_data
+    )
+
+    # Paquete para la salida
+    flopy.mf6.ModflowGwtoc(
+        gwt,
+        budget_filerecord=oc_par["tbudget_file"],
+        concentration_filerecord=oc_par["concentration_file"],
+        saverecord=[("CONCENTRATION", "ALL"), ("BUDGET", "LAST")],
+        printrecord=[("CONCENTRATION", "LAST"), ("BUDGET", "LAST")],
+    )
+
+    return sim, gwt
+```
+
+* Generación de los archivos de entrada para la simulación.
+```{.python}
+sim_t.write_simulation(silent=True)
+```
+
+* Archivos generados: 
+    - `transport.adv`:
+    - `transport.dis`:
+    - `transport.dsp`:
+    - `transport.fmi`:
+    - `transport.ic`:
+    - `transport.ims`:
+    - `transport.mst`:
+    - `transport.nam`:
+    - `transport.obs`:
+    - `transport.oc`:
+    - `transport.ssm`:
+    - `transport.tdis`:
+
+### Run
+
+* Ejecución de la simulación:
+
+```{.python}
+sim_t.run_simulation(silent=True)
+```
+
+* Archivos de salida:
+    - `transport.bud`:
+    - `transport.lst`:
+    - `transport.ucn`:
+    - `transport.obs.csv`:
+
+### Post
+
+```{.python}
+##### Leemos la solución analítica #####
+sol_path = 'analytic/' + dirname
+a1_0 = np.load(sol_path + '/a1_x_0.npy')
+a1_1 = np.load(sol_path + '/a1_x_1.npy')
+a1_2 = np.load(sol_path + '/a1_x_2.npy')
+
+f, (ax2) = plt.subplots(1, 1, figsize=(6,4), sharex=True)
+iskip = 3
+
+##### Concentración #####
+# Solución analítica
+xmf6.plot(ax2, xi, a1_0, c = 'k')
+xmf6.plot(ax2, xi, a1_1, c = 'k')
+xmf6.plot(ax2, xi, a1_2, c = 'k')
+
+# Solución numérica
+citer = [11, 119, 239]
+ctimes = [6.0, 60.0, 120.0]
+for c, (i, t) in enumerate(zip(citer, ctimes)):
+    color = 'C'+str(c)
+    # Solución Diferencias Finitas, Implícito
+    xmf6.scatter(ax2, xi[::iskip], dfi_conc[i][::iskip], label=f'{t}',
+                 marker="o", ec=color, fc="w", alpha=0.95, s=35, zorder=5)
+
+    # Solución MODFLOW 6
+    gwt_conc = of.get_concentration(sim_t, t)
+    xmf6.scatter(ax2, xi[::iskip], gwt_conc[::iskip], label=f'{t}',
+                 marker="x", c='k', s=20, zorder=5)    
+
+ax2.legend(loc="upper right", ncol=3)
+ax2.set_xlim(0, 12)
+ax2.set_ylim(-0.1, 1.5)
+ax2.set_xticks(ticks=np.linspace(0, mesh.row_length,13))
+ax2.set_xlabel("Distance (cm)")
+ax2.set_ylabel("Concentration")
+ax2.grid(True)
+
+plt.tight_layout()
+plt.savefig(dirname + '.pdf')
+plt.show()
+```
+
+![](./figuras/p01d.png){fig-align="center" fig-alt="Carga hidráulica" width=50% .lightbox}
+:::
+
+
+# Transporte: Leo
+
+## Pasos
+- Se calcula con diferencias finitas centradas.
+- Se leen los archivos h y q escritos por MODFLOW.
+- Se calculan las fracciones de mezcla (lambdas).
+- Se escriben las lambdas en archivos con el formato.
+
+# Transporte Reactivo.
+
+- Repositorio: [https://github.com/jordipg10/RT_Lagrange.git](https://github.com/jordipg10/RT_Lagrange.git)
+- WMA
+- Lee las fracciones de mezcla de los archivos …
+- Escribe los resultados en los archivos ….
+
+

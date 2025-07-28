@@ -1,0 +1,22 @@
+project:
+  type: book
+
+book:
+  title: "Tutorial: Modflow 6 + Flopy"
+  author: "Luis Miguel de la Cruz Salas"
+  date: "19/05/2025"
+  page-navigation: true
+  chapters:
+    - index.qmd
+    - 00_MF6_Intro.ipynb
+    - 01_MF6_GWF_init.ipynb
+    - 02_MF6_GWF_paq.ipynb
+    - 03_MF6_GWF_v1.ipynb
+    - 04_MF6_GWF_v2.ipynb
+    - 05_MF6_GWF_wells.ipynb
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
