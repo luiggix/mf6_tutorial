@@ -41,8 +41,8 @@ xmf6.nice_print(phys, "Parámetros físicos")
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
 init = {
     'sim_name' : "flow",
-#    'exe_name' : "C:\\Users\\luiggi\\Documents\\GitSites\\mf6_tutorial\\mf6\\windows\\mf6",
-    'exe_name' : "../../mf6/macosarm/mf6",
+    'exe_name' : r"C:\Users\luiggi\Documents\GitSites\mf6_tutorial\mf6\windows\mf6",
+#    'exe_name' : "../../mf6/macosarm/mf6",
     'sim_ws' : "output_ft_ex"
 }
 
@@ -54,8 +54,8 @@ tdis = {
 }
 
 # Parámetros para la solución numérica (flopy.mf6.ModflowIms)
+# OJO: definiremos el modelo de solución más adelante
 #ims = {}
-
 
 # Parámetros para el modelo de flujo (flopy.mf6.ModflowGwf)
 gwf = { 
@@ -116,19 +116,16 @@ o_gwf, packages = xmf6.gwf.set_packages(o_sim, silent = True,
                                         gwf = gwf, 
                                         dis = dis, ic = ic, chd = chd, npf = npf, oc = oc, well = well)
 
+# Definición del modelo de solución. Se realiza en este punto porque primero
+# se requiere definir el objeto de flujo 'o_gwf' para conocer el nombre y
+# posteriormente hacer el "registro" del modelo de solución en el objeto 'o_sim'.
 o_ims = flopy.mf6.ModflowIms(
     o_sim,
     print_option="ALL",
-#        outer_dvclose=hclose,
-#        outer_maximum=nouter,
     under_relaxation="NONE",
-#        inner_maximum=ninner,
-#        inner_dvclose=hclose,
-#        rcloserecord=rclose,
     linear_acceleration="BICGSTAB",
     scaling_method="NONE",
     reordering_method="NONE",
-#        relaxation_factor=relax,
     filename=f"{o_gwf.name}.ims",
 )
 o_sim.register_ims_package(o_ims, [o_gwf.name])
@@ -154,15 +151,13 @@ print("Caso: {}".format(dirname))
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
 init_t = {
     'sim_name' : "trans",
-#    'exe_name' : "C:\\Users\\luiggi\\Documents\\GitSites\\mf6_tutorial\\mf6\\windows\\mf6",
-    'exe_name' : "../../mf6/macosarm/mf6",
-##    'sim_ws' : "output_flow_trans_1D"
 }
 
 # Parámetros para el tiempo (flopy.mf6.ModflowTdis)
-#El mismo tdis de flow
+# El mismo tdis de flow
 
 # Parámetros para la solución numérica (flopy.mf6.ModflowIms)
+# OJO: definiremos el modelo de solución más adelante
 #ims_t = {
 #    'linear_acceleration': "bicgstab"
 #}
@@ -197,6 +192,7 @@ dsp = {
 }
 
 # Parámetros para FMI (flopy.mf6.ModflowGwtfmi)
+# OJO: no requerimos este paquete para leer la información del flujo de archivos.
 #fmi = {
 #    "packagedata" : [("GWFHEAD", f"{init['sim_name']}.hds", None),
 #                     ("GWFBUDGET", f"{init['sim_name']}.bud", None),
@@ -230,34 +226,32 @@ oc_t = {
 }
 
 # --- Inicialización de la simulación ---
-#o_sim_t = xmf6.common.init_sim(silent = True, init = init_t, 
-#                               tdis = tdis, ims = ims_t)
+# OJO: solo se definen los paquetes de GWT
 o_gwt, packagest = xmf6.gwt.set_packages(o_sim, silent = True,
                                         gwt = gwt, 
                                         dis = dis, ic = ic_t, 
                                         mst = mst, adv = adv, dsp = dsp, ssm = ssm, 
                                         oc = oc_t)
-
+# Definición del modelo de solución. Se realiza en este punto porque primero
+# se requiere definir el objeto de flujo 'o_gwt' para conocer el nombre y
+# posteriormente hacer el "registro" del modelo de solución en el objeto 'o_sim'.
 imsgwt = flopy.mf6.ModflowIms(
         o_sim,
         print_option="ALL",
-#        outer_dvclose=hclose,
-#        outer_maximum=nouter,
         under_relaxation="NONE",
-#        inner_maximum=ninner,
-#        inner_dvclose=hclose,
-#        rcloserecord=rclose,
         linear_acceleration="BICGSTAB",
         scaling_method="NONE",
         reordering_method="NONE",
-#        relaxation_factor=relax,
         filename=f"{o_gwt.name}.ims",
 )
 o_sim.register_ims_package(imsgwt, [o_gwt.name])
 
+# Se definen puntos de observación para la simulación de transporte
 o_obs = xmf6.common.set_obs(o_gwt, obs, silent = True)
 
-### Aquí va el intercambio
+# Se agrega la componente del intercambio a la simulación.
+# Ya debe estar definida la simulación con sus modelos numéricos,
+# en este caso estos modelos están definidos en los objetos 'o_gwf' y 'o_gwt' 
 flopy.mf6.ModflowGwfgwt(
     o_sim, exgtype="GWF6-GWT6", exgmnamea=o_gwf.name, exgmnameb=o_gwt.name
 )
@@ -268,11 +262,10 @@ o_sim.write_simulation(silent = True)
 # --- Ejecución de la simulación ---
 o_sim.run_simulation(silent = False)
 
-
 # --- Recuperamos los resultados de flujo de la simulación ---
+# TODO: checar si se puede recuperar la información del objeto o_gwf directamente.
 head = xmf6.gwf.get_head(o_gwf)
 qx, qy, qz, n_q = xmf6.gwf.get_specific_discharge(o_gwf, text="DATA-SPDIS")
-
 
 # --- Recuperamos los resultados de la concentración de la simulación ---
 cobj = o_gwt.output.concentration()

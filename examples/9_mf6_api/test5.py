@@ -1,33 +1,14 @@
-import os
+import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 import flopy
+from modflowapi import ModflowApi # La API
 import xmf6
 
-def get_mst_dict(phys):
-    mst = dict(
-        porosity = phys["porosity"],
-        sorption = None,
-        bulk_density = None,
-        distcoef = None, 
-        first_order_decay = None,
-        decay = None,
-        decay_sorbed = None
-    )
-    
-    if phys["retardation_factor"] > 1.0:
-        mst["sorption"] = "linear"
-        mst["bulk_density"] = 1.0
-        mst["distcoef"] = (phys["retardation_factor"] - 1.0) * phys["porosity"] / mst["bulk_density"]
-
-    if phys["decay_rate"] != 0.0:
-        mst["first_order_decay"] = True
-        mst["decay"] = phys["decay_rate"]
-        if phys["retardation_factor"] > 1.0:
-            mst["decay_sorbed"] = phys["decay_rate"]
-
-    return mst
-    
+#
+# En este ejemplo, primero ejecutamos la simulación de flujo.
+# Después, con la API, se ejecuta la simulación de transporte
+#
 phys = dict(
     specific_discharge = 0.1,  # Specific discharge ($cm s^{-1}$)
     hydraulic_conductivity = 0.01,  # Hydraulic conductivity ($cm s^{-1}$)
@@ -37,12 +18,14 @@ phys = dict(
 )
 xmf6.nice_print(phys, "Parámetros físicos")
 
+############# GWF #############
+
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
 init = {
     'sim_name' : "flow",
     'exe_name' : r"C:\Users\luiggi\Documents\GitSites\mf6_tutorial\mf6\windows\mf6",
 #    'exe_name' : "../../mf6/macosarm/mf6",
-    'sim_ws' : "output_flow_trans_1D"
+    'sim_ws' : "sandbox5"
 }
 
 # Parámetros para el tiempo (flopy.mf6.ModflowTdis)
@@ -119,6 +102,33 @@ o_simf.write_simulation(silent = True)
 # --- Ejecución de la simulación ---
 o_simf.run_simulation()
 
+
+############# GWT #############
+
+def get_mst_dict(phys):
+    mst = dict(
+        porosity = phys["porosity"],
+        sorption = None,
+        bulk_density = None,
+        distcoef = None, 
+        first_order_decay = None,
+        decay = None,
+        decay_sorbed = None
+    )
+    
+    if phys["retardation_factor"] > 1.0:
+        mst["sorption"] = "linear"
+        mst["bulk_density"] = 1.0
+        mst["distcoef"] = (phys["retardation_factor"] - 1.0) * phys["porosity"] / mst["bulk_density"]
+
+    if phys["decay_rate"] != 0.0:
+        mst["first_order_decay"] = True
+        mst["decay"] = phys["decay_rate"]
+        if phys["retardation_factor"] > 1.0:
+            mst["decay_sorbed"] = phys["decay_rate"]
+
+    return mst
+
 long_disp = [0.1, 1.0, 1.0, 1.0]
 reta_fact = [1.0, 1.0, 2.0, 1.0]
 deca_rate = [0.0, 0.0, 0.0, 0.01]
@@ -136,12 +146,13 @@ phys["dispersion_coefficient"] = phys["longitudinal_dispersivity"] * phys["speci
 xmf6.nice_print(phys, "Parámetros físicos")
 print("Caso: {}".format(dirname))
 
+
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
 init_t = {
     'sim_name' : "transport",
-    'exe_name' : r"C:\Users\luiggi\Documents\GitSites\mf6_tutorial\mf6\windows\mf6",
+    'exe_name' :  r"C:\Users\luiggi\Documents\GitSites\mf6_tutorial\mf6\windows\mf6",
 #    'exe_name' : "../../mf6/macosarm/mf6",
-    'sim_ws' : "output_flow_trans_1D"
+    'sim_ws' : "sandbox5"
 }
 
 # Parámetros para el tiempo (flopy.mf6.ModflowTdis)
@@ -228,8 +239,113 @@ o_obs = xmf6.common.set_obs(o_gwt, obs, silent = True)
 # --- Escritura de archivos ---
 o_sim_t.write_simulation(silent = True)
 
-# --- Ejecución de la simulación ---
-o_sim_t.run_simulation(silent = True)
+
+# --- Ejecución con la API ---
+
+OS = sys.platform
+if OS == "win32":
+    mf6_lib = "libmf6.dll"
+elif OS == "darwin":
+    mf6_lib = "libmf6.dylib"
+else:
+    mf6_lib = "libmf6.so"
+
+# Rutas a la biblioteca compartida y al archivo de configuración
+mf6_lib_path = os.path.abspath(os.path.join("..", "..", "mf6", "windows", mf6_lib))
+mf6_config_file = os.path.join(o_sim_t.sim_path, 'mfsim.nam')
+print("Shared library:", mf6_lib_path)
+print("Config file:", mf6_config_file)
+
+# Objeto para acceder a toda la funcionalidad de la API
+mf6 = ModflowApi(mf6_lib_path, working_directory=o_sim_t.sim_path)
+
+# Inicialización del modelo
+mf6.initialize(mf6_config_file)
+
+# Para la solución obtenida con np.linalg.solve()
+SOL = np.zeros(dis['ncol'])
+
+# Obtenemos el tiempo actual y el tiempo final de la simulación
+current_time = mf6.get_current_time()
+end_time = mf6.get_end_time()
+
+# Máximo número de iteraciones para el algorimo de solución numérica
+max_iter = mf6.get_value(mf6.get_var_address("MXITER", "SLN_1"))
+
+linea = 50*chr(0x2015)
+print(linea)
+print("Iniciando la simulación")
+print(linea)
+
+# Ciclo sobre tiempo
+while current_time < end_time:
+    # Obtenemos el paso de tiempo
+    dt = mf6.get_time_step()
+    print("dt:", dt, ", t:", current_time, ", end_t:", end_time, ", max_iter:", max_iter)
+
+    # Preparar el objeto de la API para obtener la solución y
+    # con el paso de tiempo
+    mf6.prepare_time_step(dt)
+    mf6.prepare_solve()
+    
+    # Ciclo del algoritmo numérico de solución
+    kiter = 0
+    while kiter < max_iter:
+        print("\nkiter :", kiter)
+        
+        # Construye el sistema del problema y lo resuelve
+        has_converged = mf6.solve(1)
+        
+        if has_converged:
+            print(f" ---> ¿Convergencia obtenida? : {has_converged}")
+            break
+        else:
+            print(f" ---> ¿Convergencia obtenida? : {has_converged}")
+            
+        kiter += 1
+
+    # En este momento podemos construir la matriz del sistema
+    A, _, _, _ = xmf6.api.build_mat(mf6)
+    RHS = mf6.get_value(mf6.get_var_address("RHS", 'SLN_1'))
+#    print("\nA:\n", A)
+#    print("\nRHS:\n", RHS)
+
+    # Calculamos la solución con np.linalg.solve() para comparar
+    SOL[:] = np.linalg.solve(A, RHS)
+#    print("\nSOL:\n", SOL)
+        
+    # Finalizamos la solución del paso de tiempo actual
+    mf6.finalize_solve()
+
+    # Finalizamos el paso de tiempo actual. 
+    mf6.finalize_time_step()
+
+    # Avanzamos en el tiempo
+    current_time = mf6.get_current_time()
+
+    if not has_converged:
+        print("model did not converge")
+        break
+
+# Almacenamos la solución obtenida por MF6 (ojo: necesitamos hacer una copia del arreglo)
+SOL_MF6 = np.copy(mf6.get_value_ptr(mf6.get_var_address("X", 'TRANSPORT')))
+
+# Finalizamos la simulación completa
+try:
+    mf6.finalize()
+    success = True
+except:
+    raise RuntimeError
+
+print(linea)
+print("SOl:", SOL)
+print(linea)
+print("SOl (MF6):", SOL_MF6)
+print(linea)
+print("Finalizando la simulación")
+print(linea)
+
+###########
 
 # --- Recuperamos los resultados de flujo de la simulación ---
 head = xmf6.gwf.get_head(o_gwf)
@@ -276,7 +392,13 @@ for c, (i, t) in enumerate(zip(citer, ctimes)):
     gwt_conc = xmf6.gwt.get_concentration(o_sim_t, t)
     ax3.scatter(x[0][::iskip], gwt_conc[::iskip], label=f'GWT. Time = {t}',
                 ec="k", alpha=0.75, s=20, zorder=5)    
-    
+
+ax3.scatter(x[0][::iskip], SOL[::iskip], label=f'np.linalg.solve()',
+            marker = "1", c="k", alpha=0.95, s=60, zorder=5)
+
+#ax3.scatter(x[0][::iskip], SOL_MF6[::iskip], label=f'MF6',
+#            marker = "v", ec="k", alpha=0.75, s=10, zorder=5)
+
 # Decoración de la gráfica
 ax3.legend(fontsize=9)
 ax3.set_xlim(0, 12)
@@ -288,6 +410,3 @@ ax3.grid(True)
 ax3.set_title(f"Case:{dirname}")
 plt.tight_layout()
 plt.show()
-
-
-
