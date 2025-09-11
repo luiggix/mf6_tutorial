@@ -38,7 +38,7 @@ phys = dict(
 xmf6.nice_print(phys, "Parámetros físicos")
 
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
-init = {
+init_f = {
     'sim_name' : "flow",
     'exe_name' : r"C:\Users\luiggi\Documents\GitSites\mf6_tutorial\mf6\windows\mf6",
 #    'exe_name' : "../../mf6/macosarm/mf6",
@@ -46,18 +46,18 @@ init = {
 }
 
 # Parámetros para el tiempo (flopy.mf6.ModflowTdis)
-tdis = {
+tdis_f = {
     'units': "seconds",
     'nper' : 1,
-    'perioddata': [(120.0, 240, 1.0)]
+    'perioddata': [(120.0, 1, 1.0)]
 }
 
 # Parámetros para la solución numérica (flopy.mf6.ModflowIms)
-ims = {}
+ims_f = {}
 
 # Parámetros para el modelo de flujo (flopy.mf6.ModflowGwf)
 gwf = { 
-    'modelname': init["sim_name"],
+    'modelname': init_f["sim_name"],
     'save_flows': True
 }
 
@@ -102,14 +102,14 @@ well = {
 
 # Parámetros para almacenar y mostrar la salida de la simulación (flopy.mf6.ModflowGwfoc)
 oc = {
-    'budget_filerecord': f"{init['sim_name']}.bud",
-    'head_filerecord': f"{init['sim_name']}.hds",
+    'budget_filerecord': f"{init_f['sim_name']}.bud",
+    'head_filerecord': f"{init_f['sim_name']}.hds",
     'saverecord': [("HEAD", "ALL"), ("BUDGET", "ALL")],
 #    'printrecord': [("HEAD", "ALL")]
 }
 
 # --- Inicialización de la simulación ---
-o_simf = xmf6.common.init_sim(silent = True, init = init, tdis = tdis, ims = ims)
+o_simf = xmf6.common.init_sim(silent = True, init = init_f, tdis = tdis_f, ims = ims_f)
 o_gwf, packages = xmf6.gwf.set_packages(o_simf, silent = True,
                                         gwf = gwf, 
                                         dis = dis, ic = ic, chd = chd, npf = npf, oc = oc, well = well)
@@ -139,14 +139,17 @@ print("Caso: {}".format(dirname))
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
 init_t = {
     'sim_name' : "transport",
-    'exe_name' : r"C:\Users\luiggi\Documents\GitSites\mf6_tutorial\mf6\windows\mf6",
+    'exe_name' : init_f["exe_name"],
 #    'exe_name' : "../../mf6/macosarm/mf6",
-    'sim_ws' : "output_flow_trans_1D"
+    'sim_ws' : init_f["sim_ws"]
 }
 
 # Parámetros para el tiempo (flopy.mf6.ModflowTdis)
-#El mismo tdis de flow
-
+tdis_t = {
+    'units': "seconds",
+    'nper' : 1,
+    'perioddata': [(120.0, 240, 1.0)]
+}
 # Parámetros para la solución numérica (flopy.mf6.ModflowIms)
 ims_t = {
     'linear_acceleration': "bicgstab"
@@ -183,8 +186,8 @@ dsp = {
 
 # Parámetros para FMI (flopy.mf6.ModflowGwtfmi)
 fmi = {
-    "packagedata" : [("GWFHEAD", f"{init['sim_name']}.hds", None),
-                     ("GWFBUDGET", f"{init['sim_name']}.bud", None),
+    "packagedata" : [("GWFHEAD", f"{init_f['sim_name']}.hds", None),
+                     ("GWFBUDGET", f"{init_f['sim_name']}.bud", None),
                     ]
 }
 
@@ -216,7 +219,7 @@ oc_t = {
 
 # --- Inicialización de la simulación ---
 o_sim_t = xmf6.common.init_sim(silent = True, init = init_t, 
-                               tdis = tdis, ims = ims_t)
+                               tdis = tdis_t, ims = ims_t)
 o_gwt, packagest = xmf6.gwt.set_packages(o_sim_t, silent = True,
                                         gwt = gwt, 
                                         dis = dis, ic = ic_t, 

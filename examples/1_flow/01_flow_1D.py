@@ -14,8 +14,8 @@ xmf6.nice_print(phys, "Parámetros físicos")
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
 init = {
     'sim_name' : "flow",
-#    'exe_name' : "C:\\Users\\luiggi\\Documents\\GitSites\\mf6_tutorial\\mf6\\windows\\mf6",
-    'exe_name' : "../../mf6/macosarm/mf6",
+    'exe_name' : "C:\\Users\\luiggi\\Documents\\GitSites\\mf6_tutorial\\mf6\\windows\\mf6",
+#    'exe_name' : "../../mf6/macosarm/mf6",
     'sim_ws' : "output_flow_1D"
 }
 

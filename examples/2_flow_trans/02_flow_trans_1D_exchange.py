@@ -39,7 +39,7 @@ xmf6.nice_print(phys, "Parámetros físicos")
 
 
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
-init = {
+init_f = {
     'sim_name' : "flow",
     'exe_name' : r"C:\Users\luiggi\Documents\GitSites\mf6_tutorial\mf6\windows\mf6",
 #    'exe_name' : "../../mf6/macosarm/mf6",
@@ -47,7 +47,7 @@ init = {
 }
 
 # Parámetros para el tiempo (flopy.mf6.ModflowTdis)
-tdis = {
+tdis_f = {
     'units': "seconds",
     'nper' : 1,
     'perioddata': [(120.0, 240, 1.0)]
@@ -59,7 +59,7 @@ tdis = {
 
 # Parámetros para el modelo de flujo (flopy.mf6.ModflowGwf)
 gwf = { 
-    'modelname': init["sim_name"],
+    'modelname': init_f["sim_name"],
     'save_flows': True
 }
 
@@ -104,14 +104,14 @@ well = {
 
 # Parámetros para almacenar y mostrar la salida de la simulación (flopy.mf6.ModflowGwfoc)
 oc = {
-    'budget_filerecord': f"{init['sim_name']}.bud",
-    'head_filerecord': f"{init['sim_name']}.hds",
+    'budget_filerecord': f"{init_f['sim_name']}.bud",
+    'head_filerecord': f"{init_f['sim_name']}.hds",
     'saverecord': [("HEAD", "ALL"), ("BUDGET", "ALL")],
 #    'printrecord': [("HEAD", "ALL")]
 }
 
 # --- Inicialización de la simulación ---
-o_sim = xmf6.common.init_sim(silent = True, init = init, tdis = tdis)
+o_sim = xmf6.common.init_sim(silent = True, init = init_f, tdis = tdis_f)
 o_gwf, packages = xmf6.gwf.set_packages(o_sim, silent = True,
                                         gwf = gwf, 
                                         dis = dis, ic = ic, chd = chd, npf = npf, oc = oc, well = well)
@@ -119,7 +119,7 @@ o_gwf, packages = xmf6.gwf.set_packages(o_sim, silent = True,
 # Definición del modelo de solución. Se realiza en este punto porque primero
 # se requiere definir el objeto de flujo 'o_gwf' para conocer el nombre y
 # posteriormente hacer el "registro" del modelo de solución en el objeto 'o_sim'.
-o_ims = flopy.mf6.ModflowIms(
+o_ims_f = flopy.mf6.ModflowIms(
     o_sim,
     print_option="ALL",
     under_relaxation="NONE",
@@ -128,7 +128,7 @@ o_ims = flopy.mf6.ModflowIms(
     reordering_method="NONE",
     filename=f"{o_gwf.name}.ims",
 )
-o_sim.register_ims_package(o_ims, [o_gwf.name])
+o_sim.register_ims_package(o_ims_f, [o_gwf.name])
 
 long_disp = [0.1, 1.0, 1.0, 1.0]
 reta_fact = [1.0, 1.0, 2.0, 1.0]
@@ -235,7 +235,7 @@ o_gwt, packagest = xmf6.gwt.set_packages(o_sim, silent = True,
 # Definición del modelo de solución. Se realiza en este punto porque primero
 # se requiere definir el objeto de flujo 'o_gwt' para conocer el nombre y
 # posteriormente hacer el "registro" del modelo de solución en el objeto 'o_sim'.
-imsgwt = flopy.mf6.ModflowIms(
+o_ims_t = flopy.mf6.ModflowIms(
         o_sim,
         print_option="ALL",
         under_relaxation="NONE",
@@ -244,7 +244,7 @@ imsgwt = flopy.mf6.ModflowIms(
         reordering_method="NONE",
         filename=f"{o_gwt.name}.ims",
 )
-o_sim.register_ims_package(imsgwt, [o_gwt.name])
+o_sim.register_ims_package(o_ims_t, [o_gwt.name])
 
 # Se definen puntos de observación para la simulación de transporte
 o_obs = xmf6.common.set_obs(o_gwt, obs, silent = True)
