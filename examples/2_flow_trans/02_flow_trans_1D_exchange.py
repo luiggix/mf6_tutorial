@@ -1,3 +1,5 @@
+# MF6 Tutorial (https://github.com/luiggix/mf6_tutorial) © 2025 by Luis M. de la Cruz Salas (https://luiggix.github.io/web/) is licensed under Creative Commons Attribution-NonCommercial 4.0 International. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/ 
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -136,6 +138,12 @@ deca_rate = [0.0, 0.0, 0.0, 0.01]
 dir_names = ['p01a','p01b','p01c','p01d']
 
 case = int(input("Caso (1-4)= ")) - 1 # 0, 1, 2, 3
+if case < 0:
+    case = 0
+    print(f"Wrong value! Using case = {case+1}")
+elif case > 3:
+    case = 3
+    print(f"Wrong value! Using case = {case+1}")
 dirname = dir_names[case]
 
 # Agregamos más parámetros físicos al diccionario phys
@@ -169,7 +177,7 @@ gwt = {
 }
 
 # Parámetros para la discretización espacial (flopy.mf6.ModflowGwtdis)
-# El mismo dis de flow
+# Es el mismo dis utilizado en la simulación de flujo, no es necesario redefinirlo
 
 # Parámetros para las condiciones iniciales (flopy.mf6.ModflowGwtic)
 ic_t = {
@@ -205,6 +213,7 @@ ssm = {
 }
 
 # Parámetros para OBS (flopy.mf6.ModflowGwtobs)
+# Estos son sitios de observación espaciales fijos, para distintos tiempos.
 obs = {
     "digits" : 10, 
     "print_input" : True, 
@@ -309,7 +318,7 @@ ax3.plot(x[0], a1_2, c = 'k')
 citer = [11, 119, 239]
 ctimes = [6.0, 60.0, 120.0]
 iskip = 3
-for c, (i, t) in enumerate(zip(citer, ctimes)):
+for t in ctimes:
 #    gwt_conc = xmf6.gwt.get_concentration(o_sim, t)
     conc = cobj.get_data(totim=t)
     ax3.scatter(x[0][::iskip], conc[0, 0][::iskip], label=f'GWT. Time = {t}',

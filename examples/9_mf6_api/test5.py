@@ -1,3 +1,5 @@
+# MF6 Tutorial (https://github.com/luiggix/mf6_tutorial) © 2025 by Luis M. de la Cruz Salas (https://luiggix.github.io/web/) is licensed under Creative Commons Attribution-NonCommercial 4.0 International. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/ 
+
 import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -92,15 +94,15 @@ oc = {
 }
 
 # --- Inicialización de la simulación ---
-o_simf = xmf6.common.init_sim(silent = True, init = init_f, tdis = tdis_f, ims = ims_f)
-o_gwf, packages = xmf6.gwf.set_packages(o_simf, silent = True,
+o_sim = xmf6.common.init_sim(silent = True, init = init_f, tdis = tdis_f, ims = ims_f)
+o_gwf, packages = xmf6.gwf.set_packages(o_sim, silent = True,
                                         gwf = gwf, 
                                         dis = dis, ic = ic, chd = chd, npf = npf, oc = oc, well = well)
 # --- Escritura de archivos ---
-o_simf.write_simulation(silent = True)
+o_sim.write_simulation(silent = True)
 
 # --- Ejecución de la simulación ---
-o_simf.run_simulation()
+o_sim.run_simulation()
 
 ############# GWT #############
 

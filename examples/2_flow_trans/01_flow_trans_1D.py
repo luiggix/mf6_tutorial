@@ -1,3 +1,5 @@
+# MF6 Tutorial (https://github.com/luiggix/mf6_tutorial) © 2025 by Luis M. de la Cruz Salas (https://luiggix.github.io/web/) is licensed under Creative Commons Attribution-NonCommercial 4.0 International. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/ 
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -109,22 +111,28 @@ oc = {
 }
 
 # --- Inicialización de la simulación ---
-o_simf = xmf6.common.init_sim(silent = True, init = init_f, tdis = tdis_f, ims = ims_f)
-o_gwf, packages = xmf6.gwf.set_packages(o_simf, silent = True,
+o_sim_f = xmf6.common.init_sim(silent = True, init = init_f, tdis = tdis_f, ims = ims_f)
+o_gwf, packages = xmf6.gwf.set_packages(o_sim_f, silent = True,
                                         gwf = gwf, 
                                         dis = dis, ic = ic, chd = chd, npf = npf, oc = oc, well = well)
 # --- Escritura de archivos ---
-o_simf.write_simulation(silent = True)
+o_sim_f.write_simulation(silent = True)
 
 # --- Ejecución de la simulación ---
-o_simf.run_simulation()
+o_sim_f.run_simulation()
 
 long_disp = [0.1, 1.0, 1.0, 1.0]
 reta_fact = [1.0, 1.0, 2.0, 1.0]
 deca_rate = [0.0, 0.0, 0.0, 0.01]
 dir_names = ['p01a','p01b','p01c','p01d']
 
-case = int(input("Caso (1-4)= ")) - 1 # 0, 1, 2, 3
+case = int(input("Caso (1,2,3 o 4)= ")) - 1 # 0, 1, 2, 3
+if case < 0:
+    case = 0
+    print(f"Wrong value! Using case = {case+1}")
+elif case > 3:
+    case = 3
+    print(f"Wrong value! Using case = {case+1}")
 dirname = dir_names[case]
 
 # Agregamos más parámetros físicos al diccionario phys
@@ -139,9 +147,8 @@ print("Caso: {}".format(dirname))
 # Parámetros de la simulación (flopy.mf6.MFSimulation)
 init_t = {
     'sim_name' : "transport",
-    'exe_name' : init_f["exe_name"],
-#    'exe_name' : "../../mf6/macosarm/mf6",
-    'sim_ws' : init_f["sim_ws"]
+    'exe_name' : init_f["exe_name"], # Tomamos el valor de la simulación de flujo
+    'sim_ws' : init_f["sim_ws"]      # Tomamos el valor de la simulación de flujo
 }
 
 # Parámetros para el tiempo (flopy.mf6.ModflowTdis)
@@ -162,7 +169,7 @@ gwt = {
 }
 
 # Parámetros para la discretización espacial (flopy.mf6.ModflowGwtdis)
-# El mismo dis de flow
+# Es el mismo dis utilizado en la simulación de flujo, no es necesario redefinirlo
 
 # Parámetros para las condiciones iniciales (flopy.mf6.ModflowGwtic)
 ic_t = {
@@ -185,6 +192,8 @@ dsp = {
 }
 
 # Parámetros para FMI (flopy.mf6.ModflowGwtfmi)
+# Se define el nombre de los archivos desde donde se lee la
+# información del modelo de flujo calculada previamente
 fmi = {
     "packagedata" : [("GWFHEAD", f"{init_f['sim_name']}.hds", None),
                      ("GWFBUDGET", f"{init_f['sim_name']}.bud", None),
@@ -197,6 +206,7 @@ ssm = {
 }
 
 # Parámetros para OBS (flopy.mf6.ModflowGwtobs)
+# Estos son sitios de observación espaciales fijos, para distintos tiempos.
 obs = {
     "digits" : 10, 
     "print_input" : True, 
@@ -272,10 +282,9 @@ ax3.plot(x[0], a1_1, c = 'k')
 ax3.plot(x[0], a1_2, c = 'k')
 
 # Solución numérica
-citer = [11, 119, 239]
 ctimes = [6.0, 60.0, 120.0]
 iskip = 3
-for c, (i, t) in enumerate(zip(citer, ctimes)):
+for t in ctimes:
     gwt_conc = xmf6.gwt.get_concentration(o_sim_t, t)
     ax3.scatter(x[0][::iskip], gwt_conc[::iskip], label=f'GWT. Time = {t}',
                 ec="k", alpha=0.75, s=20, zorder=5)    

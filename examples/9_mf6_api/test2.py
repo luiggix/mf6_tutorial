@@ -1,3 +1,5 @@
+# MF6 Tutorial (https://github.com/luiggix/mf6_tutorial) © 2025 by Luis M. de la Cruz Salas (https://luiggix.github.io/web/) is licensed under Creative Commons Attribution-NonCommercial 4.0 International. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/ 
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
